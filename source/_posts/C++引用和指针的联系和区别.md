@@ -1,8 +1,16 @@
 ---
 title: C++引用和指针的联系和区别
+top: false
+cover: false
+toc: true
+mathjax: true
 date: 2021-01-11 18:09:29
+password:
+summary:
 tags:
 - C/C++
+categories:
+- 基础
 ---
 
 # 为什么C/C++语言使用指针？
