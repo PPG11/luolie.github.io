@@ -104,5 +104,5 @@ theme: fluid
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: git@github.com:PPG11/luolieBlog.git
+  repo: https://github.com/PPG11/luolie.github.io.git
   branch: master
