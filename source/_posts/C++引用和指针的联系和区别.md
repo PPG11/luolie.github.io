@@ -4,19 +4,21 @@ top: false
 cover: false
 toc: true
 mathjax: true
-date: 2021-01-11 18:09:29
+date: 2019-03-11 10:09:29
 password:
 summary:
 tags:
 - C/C++
 categories:
-- 基础
+- [编程语言, C/C++]
 ---
 
 # 为什么C/C++语言使用指针？
+
 原文链接：https://www.cnblogs.com/gxcdream/p/4805612.html
 
-答案：①一方面，每一种编程语言都使用指针。不止C/C++使用指针。
+答案：
+①一方面，每一种编程语言都使用指针。不止C/C++使用指针。
 每一种编程语言都使用指针。C++将指针暴露给了用户(程序员)，而Java和C#等语言则将指针隐藏起来了。
 “Everything uses pointers. C++ just exposes them rather than hiding them,”
 It's easier to give someone an address to your home than to give a copy of your home to everyone.
