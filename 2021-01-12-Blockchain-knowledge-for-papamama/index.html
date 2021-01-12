@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Background因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。 概述区块链大概是个什么呀？ 写给自己其实我也经常会问我自己这个问题，区块链到底是什么？从数据结构的角度可以理解为区块链就是一个 JSON 串，隔一段时间向后插入一个新的 Block （还是一个 JSON），又用到前一个 Blo">
+  <meta name="description" content="Background因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。  每个板块分为两部分  写给自己：只是给我自己看的，用作思考 写给爸妈：把我自己的思考翻译为人话（食用时只需要阅读此部分即可）   1. 概述区块链大概是个什么呀？ 写给自己 其实我也经常会问我自己这个问题，区块链到底是什么？">
 <meta property="og:type" content="article">
 <meta property="og:title" content="写给爸爸妈妈看的区块链知识">
 <meta property="og:url" content="http://example.com/2021-01-12-Blockchain-knowledge-for-papamama/">
 <meta property="og:site_name" content="罗列的博客">
-<meta property="og:description" content="Background因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。 概述区块链大概是个什么呀？ 写给自己其实我也经常会问我自己这个问题，区块链到底是什么？从数据结构的角度可以理解为区块链就是一个 JSON 串，隔一段时间向后插入一个新的 Block （还是一个 JSON），又用到前一个 Blo">
+<meta property="og:description" content="Background因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。  每个板块分为两部分  写给自己：只是给我自己看的，用作思考 写给爸妈：把我自己的思考翻译为人话（食用时只需要阅读此部分即可）   1. 概述区块链大概是个什么呀？ 写给自己 其实我也经常会问我自己这个问题，区块链到底是什么？">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-01-12T05:32:08.000Z">
-<meta property="article:modified_time" content="2021-01-12T07:54:48.940Z">
+<meta property="article:modified_time" content="2021-01-12T13:10:45.099Z">
 <meta property="article:author" content="Luo Lie">
 <meta property="article:tag" content="区块链">
 <meta name="twitter:card" content="summary">
@@ -191,7 +191,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-01-12 13:32:08 / 修改时间：15:54:48" itemprop="dateCreated datePublished" datetime="2021-01-12T13:32:08+08:00">2021-01-12</time>
+              <time title="创建时间：2021-01-12 13:32:08 / 修改时间：21:10:45" itemprop="dateCreated datePublished" datetime="2021-01-12T13:32:08+08:00">2021-01-12</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,10 +215,76 @@
 
       
         <h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。</p>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>区块链大概是个什么呀？</p>
-<h3 id="写给自己"><a href="#写给自己" class="headerlink" title="写给自己"></a>写给自己</h3><p>其实我也经常会问我自己这个问题，区块链到底是什么？从数据结构的角度可以理解为区块链就是一个 JSON 串，隔一段时间向后插入一个新的 Block （还是一个 JSON），又用到前一个 Block 的 hash 作为头部数据，这样“链表”的数据结构就构成了区块链，Block 内包括…</p>
-<p>但是这只是技术原理，其实很多人更关心的是在上面的用途，就像是如果我能说出“机器学习”就是你手机每次解锁用的“指纹识别/人脸识别”这样虽然并不准确，还有一些以偏概全，但是能一下子让听者得到他想知道的内容的一个直观感受，会面在有细节又可以针对细节展开了。</p>
-<h3 id="写给爸爸妈妈看的区块链知识"><a href="#写给爸爸妈妈看的区块链知识" class="headerlink" title="写给爸爸妈妈看的区块链知识"></a>写给爸爸妈妈看的区块链知识</h3><p>是一个记账</p>
+<blockquote>
+<p>每个板块分为两部分</p>
+<ul>
+<li>写给自己：只是给我自己看的，用作思考</li>
+<li>写给爸妈：把我自己的思考翻译为人话（食用时只需要阅读此部分即可）</li>
+</ul>
+</blockquote>
+<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>区块链大概是个什么呀？</p>
+<h3 id="写给自己"><a href="#写给自己" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
+<p>其实我也经常会问我自己这个问题，区块链到底是什么？</p>
+<p>从数据结构的角度可以理解为区块链就是一个 JSON 串，隔一段时间向后插入一个新的 Block （还是一个 JSON），又用到前一个 Block 的 hash 作为头部数据</p>
+<p>这样“链表”的数据结构就构成了区块链，Block 内包括…</p>
+<p>但是这只是技术原理，其实很多人更关心的是在上面的用途。</p>
+<p>就像是如果我能说出“机器学习”就是你手机每次解锁用的“指纹识别/人脸识别”这样虽然并不准确，还有一些以偏概全，但是能一下子让听者得到他想知道的内容的一个直观感受。</p>
+</blockquote>
+<h3 id="写给爸妈"><a href="#写给爸妈" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>区块链可以简单为，是一个记录转信息的系统，但是这个和我们日常生活中的却不太一样。</p>
+<p>我们日常生活中一般转账一般是统一交给银行来处理，因为我们相信银行不会记错账，我通过银行转账也确实能转到对方手里。</p>
+<p>而区块链记账的原理是，所有人都拿一个小账本，任何一笔交易，比如我转账给你，我们都会拿一个大喇叭告诉所有人，我拿了xxx元给你，并且大家都记录在在他们的记账本上记录一下我们这笔交易。</p>
+<p>所以每个人的账本既要记录自己，也要记录别人的交易内容，大家所有人账本上的内容都是一样的，这样做确实好像很麻烦，但是却能带来不少好处，这就是后面的内容。</p>
+<h2 id="2-为什么要设计区块链？"><a href="#2-为什么要设计区块链？" class="headerlink" title="2. 为什么要设计区块链？"></a>2. 为什么要设计区块链？</h2><h3 id="写给自己-1"><a href="#写给自己-1" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
+<p>区块链的诞生离不开一个词汇，“去中性化”。</p>
+<p>就是我们手里的钱会不会贬值完全靠发货币的机构，比如银行来控制，这样有些坏政府会靠着超发货币来满足执政者的需求，后果就是大家拼命赚钱来对抗通货膨胀，但是而少数人通过控制货币政策就可以保全自己的资产。这些原因可以总结为货币以及货币的交易是中心化不可避免的问题（少数人可以一定程度操控货币规则从中获利）。</p>
+<p>为了能保护自己的劳动成果，或者说为了让货币的价值控制在多数人手里，人们一直在寻找一个解决办法，当然寻找解决办法的期间会面临很多问题，比如该用什么样的货币（货币政策）、如果保证交易过程中一系列安全（科学技术问题）、怎么让大众接受这个理念（生态）。</p>
+<p>区块链算是在这套体系中最后一块版图，所以大家会把这一个体系称之为区块链，而大家的目的就是在这套系统上建立一个分布式的货币规则，并且因为是分布式的的特点让这个系统里没有“银行”的存在，也保证了对于每个人都是公平的。</p>
+<p>所以人们开始尝试逐渐在这套系统上建立一个和现实世界纸币并行的新的货币体系，其中的钱也可以和人民币/美元等按照汇率兑换，当然这个汇率存粹地尊重市场调整。</p>
+</blockquote>
+<h3 id="写给爸妈-1"><a href="#写给爸妈-1" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>民国末期有过这么一个事儿，就是政府为了缓解财政压力，就不停的印钱，导致的结果是老百姓手里的钱不值钱，物价就翻了4、5倍，老百姓莫名其妙手里的钱就不值钱了。</p>
+<p>这主要原因就是有一个中心化的货币管理机构，就不可避免可能会出现这类事情。中国政府算是控制的好的，所以我们可能感受不深，但是美国现在都还深受其害。</p>
+<p>我看过这么一个说法，说美国总统竞选的时候疯狂的许诺自己上台以后会做的事情，因为他上台之后完全可以通过多印钱给政府来兑现承诺，但是这样破坏货币平衡就可能会导致货币的价值发生波动。</p>
+<p>在这么一个背景下，全世界都在思考一个有没有一个“没有中心”的货币制度，当然这期间会遇见很多难题，包括用什么样的货币，大家怎么交易之类的。总之过了很多年的学者研究，现在全世界尝试在区块链这个技术上构建这么一个货币体系。</p>
+<h2 id="区块链怎么交易呢"><a href="#区块链怎么交易呢" class="headerlink" title="区块链怎么交易呢"></a>区块链怎么交易呢</h2><h3 id="写给自己-2"><a href="#写给自己-2" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
+<p>区块链为了保证一直有使用者维护这一套系统（记账），会给每个记账者奖励电子货币，就比如比特币 BTC，而这个电子货币就会在这一套区块链上流通。而大家交易的过程中交易的也就是这些随着大家记账而越来越多的货币（所以记账的过程也称为挖矿）</p>
+<p>而具体的交易就和我们日常生活使用钱一样，比如我们买个苹果会用人民币，而如果对方接受我付美元而且我也有美元，那么我也可以付美元，同理如果对方接受区块链货币，那么我也可以付区块链货币。</p>
+<p>至于我该付多少，区块链货币也会有和人民币的一个汇率，而这个汇率也会市场波动。</p>
+</blockquote>
+<h3 id="写给爸妈-2"><a href="#写给爸妈-2" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>其实就和我们日常交易一样，我们可以在银行按照一定比率把手里的钱换成美元，也可以在银行按照一定比率把手里的钱换成区块链货币，然后大家按照相应的价格交易就好啦，具体方法大概就像我微信给你转账一样吧hhhh。</p>
+<p>ps当然不是每个银行都能兑换到区块链货币啊，如果你想兑换我再告诉你在什么银行hhhh。</p>
+<h2 id="大家每个人都要记账太累了吧"><a href="#大家每个人都要记账太累了吧" class="headerlink" title="大家每个人都要记账太累了吧"></a>大家每个人都要记账太累了吧</h2><h3 id="写给自己-3"><a href="#写给自己-3" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
+<p>区块链和机器学习近些年来才活跃起来的原因是一样的，叫做算力提升。</p>
+<p>全世界能有足够多机器都在维护着这个货币平台（记账），就像是日不落帝国一样，永远有设备，永远有很多很多的设备在帮每一笔交易记账，所以这样一个貌似很麻烦的事情，其实都是机器上的脚本在运行罢了。</p>
+</blockquote>
+<h3 id="写给爸妈-3"><a href="#写给爸妈-3" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>这个肯定不是人记账嘛，就是我们现在电脑手机性能越来越好了，所以大家就会把平时闲置的机器打开那个程序，就一直帮这个系统记账，当然花费的只是电费罢了，人还是该看电视看电视啊。</p>
+<h2 id="区块链的现在和未来"><a href="#区块链的现在和未来" class="headerlink" title="区块链的现在和未来"></a>区块链的现在和未来</h2><p>虽然区块链现在地位确实有点暧昧，因为不受控制会让政府有一些苦恼，但是现在全世界已经有无数的人在使用这么一套系统了，这个潮流肯定已经阻挡不了了。</p>
+<p>而中国人民币在全球不算强势的货币，就像现在大家还是都拿美元作为参照物，所以中国也蛮想在这种电子货币的领域中率先出击，做出一些能让人民币，或许未来的电子人民币能在世界上和美元搏一搏。</p>
+<p>说这些只是想给你们我公司不是什么非法组织啦hhhhh</p>
+<h2 id="ps-喝酒时"><a href="#ps-喝酒时" class="headerlink" title="ps. 喝酒时"></a>ps. 喝酒时</h2><ul>
+<li><p><strong>问：区块链是什么啊？</strong></p>
+</li>
+<li><p><strong>答：区块链就是帮别人炒股的平台，我们不炒股，我们提供技术支持</strong></p>
+</li>
+</ul>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>这里没涉及到但是我觉得也很重要的内容</p>
+<ul>
+<li>怎么保障我自己财产安全？<ul>
+<li>RSA 非对称加密 公钥(地址)/私钥</li>
+</ul>
+</li>
+<li>怎么保障交易安全？<ul>
+<li>时间戳 + SHA256哈希 + 难度调整</li>
+</ul>
+</li>
+<li>怎么保证不会有通货膨胀？<ul>
+<li>区块链发币规则都还有自己的经济学原理（黄皮书），通常是通货紧缩来保证货币价格越来越值钱（所以比特币越来越贵）</li>
+</ul>
+</li>
+<li>为什么相信比特币有价值<ul>
+<li>hhh这个问题无法回答，但是现代人类就是只要有一部分相信有价值，那么一样东西就是有价值的呀（而且这个相信的人还会越来越多）</li>
+</ul>
+</li>
+</ul>
 
     </div>
 
@@ -299,7 +365,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1"><span class="nav-number">2.1.</span> <span class="nav-text">写给自己</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E7%88%B8%E7%88%B8%E5%A6%88%E5%A6%88%E7%9C%8B%E7%9A%84%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9F%A5%E8%AF%86"><span class="nav-number">2.2.</span> <span class="nav-text">写给爸爸妈妈看的区块链知识</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">1. 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1"><span class="nav-number">2.1.</span> <span class="nav-text">写给自己</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E7%88%B8%E5%A6%88"><span class="nav-number">2.2.</span> <span class="nav-text">写给爸妈</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%AE%BE%E8%AE%A1%E5%8C%BA%E5%9D%97%E9%93%BE%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">2. 为什么要设计区块链？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1-1"><span class="nav-number">3.1.</span> <span class="nav-text">写给自己</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E7%88%B8%E5%A6%88-1"><span class="nav-number">3.2.</span> <span class="nav-text">写给爸妈</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E6%80%8E%E4%B9%88%E4%BA%A4%E6%98%93%E5%91%A2"><span class="nav-number">4.</span> <span class="nav-text">区块链怎么交易呢</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1-2"><span class="nav-number">4.1.</span> <span class="nav-text">写给自己</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E7%88%B8%E5%A6%88-2"><span class="nav-number">4.2.</span> <span class="nav-text">写给爸妈</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7%E5%AE%B6%E6%AF%8F%E4%B8%AA%E4%BA%BA%E9%83%BD%E8%A6%81%E8%AE%B0%E8%B4%A6%E5%A4%AA%E7%B4%AF%E4%BA%86%E5%90%A7"><span class="nav-number">5.</span> <span class="nav-text">大家每个人都要记账太累了吧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1-3"><span class="nav-number">5.1.</span> <span class="nav-text">写给自己</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E7%BB%99%E7%88%B8%E5%A6%88-3"><span class="nav-number">5.2.</span> <span class="nav-text">写给爸妈</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9A%84%E7%8E%B0%E5%9C%A8%E5%92%8C%E6%9C%AA%E6%9D%A5"><span class="nav-number">6.</span> <span class="nav-text">区块链的现在和未来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ps-%E5%96%9D%E9%85%92%E6%97%B6"><span class="nav-number">7.</span> <span class="nav-text">ps. 喝酒时</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">8.</span> <span class="nav-text">附录</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
