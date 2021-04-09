@@ -7,7 +7,8 @@ mathjax: true
 date: 2021-03-21 11:31:19
 password:
 summary:
-tags: C++
+tags:
+  - C/C++
 categories:
 ---
 
