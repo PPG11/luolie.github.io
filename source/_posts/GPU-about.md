@@ -423,6 +423,275 @@ Early-Z 技术可以将很多无效的像素提前剔除，避免它们进入耗
 
 更多详情可以观看虚幻官方的视频教学：实时渲染深入探究。
 
+## GPU 资源机制
+
+本节将阐述 GPU 的内存访问、资源管理等机制。
+
+### 内存架构
+
+部分架构的 GPU 与 CPU 类似，也有多级缓存结构：寄存器、L1 缓存、L2 缓存、GPU 显存、系统显存。
+
+![](../images/GPU/cpu-mem.png)
+
+它们的存取速度从寄存器到系统内存依次变慢：
+
+| 存储类型 | 寄存器 | 共享内存 | L1 缓存 | L2 缓存 | 纹理、常量缓存 | 全局内存 |
+| -------- | ------ | -------- | ------- | ------- | -------------- | -------- |
+| 访问周期 | 1      | 1~32     | 1~32    | 32~64   | 400~600        | 400~600  |
+
+由此可见，shader 直接访问寄存器、L1、L2 缓存还是比较快的，但访问纹理、常量缓存和全局内存非常慢，会造成很高的延迟。
+
+上面的多级缓存结构可被称为“CPU-Style”，还存在 GPU-Style 的内存架构：
+
+![](../images/GPU/gpu-mem.png)
+
+这种架构的特点是 ALU 多，GPU 上下文（Context）多，吞吐量高，依赖**高带宽与系统内存交换数据**。
+
+### GPU Context 和延迟
+
+由于 SIMT 技术的引入，导致很多同一个 SM 内的很多 Core 并不是独立的，当它们当中有部分 Core 需要访问到纹理、常量缓存和全局内存时，就会导致非常大的卡顿（Stall）。
+
+例如下图中，有 4 组上下文（Context），它们共用同一组运算单元 ALU。
+
+![](../images/GPU/context-s1.png)
+
+假设第一组 Context 需要访问缓存或内存，会导致 2~3 个周期的延迟，此时调度器会激活第二组 Context 以利用 ALU：
+
+![](../images/GPU/context-s2.png)
+
+当第二组 Context 访问缓存或内存又卡住，会依次激活第三、第四组 Context，直到第一组 Context 恢复运行或所有都被激活：
+
+![](../images/GPU/context-s3.png)
+
+延迟的后果是每组 Context 的总体执行时间被拉长了：
+
+![](../images/GPU/context-s4.png)
+
+但是，越多 Context 可用就越可以提升运算单元的吞吐量，比如下图的 18 组 Context 的架构可以最大化地提升吞吐量：
+
+![](../images/GPU/context.png)
+
+### CPU-GPU 异构系统
+
+根据 CPU 和 GPU 是否共享内存，可分为两种类型的 CPU-GPU 架构：
+
+![](../images/GPU/cpu-gpu.png)
+
+上图左是**分离式架构**，CPU 和 GPU 各自有独立的缓存和内存，它们通过 PCI-e 等总线通讯。这种结构的缺点在于 PCI-e 相对于两者具有低带宽和高延迟，数据的传输成了其中的性能瓶颈。目前使用非常广泛，如 PC、智能手机等。
+
+上图右是**耦合式架构**，CPU 和 GPU 共享内存和缓存。AMD 的 APU 采用的就是这种结构，目前主要使用在游戏主机中，如 PS4。
+
+在存储管理方面，分离式结构中 CPU 和 GPU 各自拥有独立的内存，两者共享一套虚拟地址空间，必要时会进行内存拷贝。对于耦合式结构，GPU 没有独立的内存，与 GPU 共享系统内存，由 MMU 进行存储管理。
+
+### GPU 资源管理模型
+
+下图是分离式架构的资源管理模型：
+
+![](../images/GPU/GPU-resource.png)
+
+- MMIO（Memory Mapped IO）
+
+  - CPU 与 GPU 的交流就是通过 MMIO 进行的。CPU 通过 MMIO 访问 GPU 的寄存器状态。
+  - DMA 传输大量的数据就是通过 MMIO 进行命令控制的。
+  - I/O 端口可用于间接访问 MMIO 区域，像 Nouveau 等开源软件从来不访问它。
+
+- GPU Context
+
+  - GPU Context 代表了 GPU 计算的状态。
+  - 在 GPU 中拥有自己的虚拟地址。
+  - GPU 中可以并存多个活跃态下的 Context。
+
+- GPU Channel
+
+  - 任何命令都是由 CPU 发出。
+  - 命令流（command stream）被提交到硬件单元，也就是 GPU Channel。
+  - 每个 GPU Channel 关联一个 context，而一个 GPU Context 可以有多个 GPU channel。
+  - 每个 GPU Context 包含相关 channel 的 GPU Channel Descriptors ，每个 Descriptor 都是 GPU 内存中的一个对象。
+  - 每个 GPU Channel Descriptor 存储了 Channel 的设置，其中就包括 Page Table 。
+  - 每个 GPU Channel 在 GPU 内存中分配了唯一的命令缓存，这通过 MMIO 对 CPU 可见。
+  - GPU Context Switching 和命令执行都在 GPU 硬件内部调度。
+
+- GPU Page Table
+
+  - GPU Context 在虚拟基地空间由 Page Table 隔离其它的 Context 。
+  - GPU Page Table 隔离 CPU Page Table，位于 GPU 内存中。
+  - GPU Page Table 的物理地址位于 GPU Channel Descriptor 中。
+  - GPU Page Table 不仅仅将 GPU 虚拟地址转换成 GPU 内存的物理地址，也可以转换成 CPU 的物理地址。因此，GPU Page Table 可以将 GPU 虚拟地址和 CPU 内存地址统一到 GPU 统一虚拟地址空间来。
+
+- PCI-e BAR
+
+  - GPU 设备通过 PCI-e 总线接入到主机上。 Base Address Registers(BARs) 是 MMIO 的窗口，在 GPU 启动时候配置。
+  - GPU 的控制寄存器和内存都映射到了 BARs 中。
+  - GPU 设备内存通过映射的 MMIO 窗口去配置 GPU 和访问 GPU 内存。
+
+- PFIFO Engine
+
+  - PFIFO 是 GPU 命令提交通过的一个特殊的部件。
+  - PFIFO 维护了一些独立命令队列，也就是 Channel。
+  - 此命令队列是 Ring Buffer，有 PUT 和 GET 的指针。
+  - 所有访问 Channel 控制区域的执行指令都被 PFIFO 拦截下来。
+  - GPU 驱动使用 Channel Descriptor 来存储相关的 Channel 设定。
+  - PFIFO 将读取的命令转交给 PGRAPH Engine。
+
+- BO
+  - Buffer Object (BO)，内存的一块(Block)，能够用于存储纹理（Texture）、渲染目标（Render Target）、着色代码（shader code）等等。
+  - Nouveau 和 Gdev 经常使用 BO。
+
+> Nouveau 是一个自由及开放源代码显卡驱动程序，是为 NVidia 的显卡所编写。
+> Gdev 是一套丰富的开源软件，用于 NVIDIA 的 GPGPU 技术，包括设备驱动程序。
+
+### CPU-GPU 数据流
+
+下图是分离式架构的 CPU-GPU 的数据流程图：
+
+![](../images/GPU/dataflow.png)
+
+1. 将主存的处理数据复制到显存中。
+2. CPU 指令驱动 GPU。
+3. GPU 中的每个运算单元并行处理。此步会从显存存取数据。
+4. GPU 将显存结果传回主存。
+
+### 显像机制
+
+- 水平和垂直同步信号
+
+在早期的 CRT 显示器，电子枪从上到下逐行扫描，扫描完成后显示器就呈现一帧画面。然后电子枪回到初始位置进行下一次扫描。为了同步显示器的显示过程和系统的视频控制器，显示器会用硬件时钟产生一系列的定时信号。
+
+![](../images/GPU/elecgun.png)
+
+当电子枪换行进行扫描时，显示器会发出一个水平同步信号（horizonal synchronization），简称 HSync
+
+当一帧画面绘制完成后，电子枪回复到原位，准备画下一帧前，显示器会发出一个垂直同步信号（vertical synchronization），简称 VSync。
+
+显示器通常以固定频率进行刷新，这个刷新率就是 VSync 信号产生的频率。虽然现在的显示器基本都是液晶显示屏了，但其原理基本一致。
+
+CPU 将计算好显示内容提交至 GPU，GPU 渲染完成后将渲染结果存入帧缓冲区，视频控制器会按照 VSync 信号逐帧读取帧缓冲区的数据，经过数据转换后最终由显示器进行显示。
+
+![](../images/GPU/hsync.png)
+
+- 双缓冲
+
+在单缓冲下，帧缓冲区的读取和刷新都都会有比较大的效率问题，经常会出现相互等待的情况，导致帧率下降。
+
+为了解决效率问题，GPU 通常会引入两个缓冲区，即**双缓冲机制**。在这种情况下，GPU 会预先渲染一帧放入一个缓冲区中，用于视频控制器的读取。当下一帧渲染完毕后，GPU 会直接把视频控制器的指针指向第二个缓冲器。
+
+![](../images/GPU/double-buffer.png)
+
+- 垂直同步
+
+双缓冲虽然能解决效率问题，但会引入一个新的问题。当视频控制器还未读取完成时，即屏幕内容刚显示一半时，GPU 将新的一帧内容提交到帧缓冲区并把两个缓冲区进行交换后，视频控制器就会把新的一帧数据的下半段显示到屏幕上，造成画面撕裂现象：
+
+![](../images/GPU/vsyncoff.jpg)
+
+为了解决这个问题，GPU 通常有一个机制叫做垂直同步（简写也是 V-Sync），当开启垂直同步后，GPU 会等待显示器的 VSync 信号发出后，才进行新的一帧渲染和缓冲区更新。这样能解决画面撕裂现象，也增加了画面流畅度，但需要消费更多的计算资源，也会带来部分延迟。
+
+## Shader 运行机制
+
+Shader 代码也跟传统的 C++等语言类似，需要将面向人类的高级语言（GLSL、HLSL、CGSL）通过编译器转成面向机器的二进制指令，二进制指令可转译成汇编代码，以便技术人员查阅和调试。
+
+![](../images/GPU/highlevelcode.png)
+
+由高级语言编译成汇编指令的过程通常是在离线阶段执行，以减轻运行时的消耗。
+
+在执行阶段，CPU 端将 shader 二进制指令经由 PCI-e 推送到 GPU 端，GPU 在执行代码时，会用 Context 将指令分成若干 Channel 推送到各个 Core 的存储空间。
+
+对现代 GPU 而言，可编程的阶段越来越多，包含但不限于：
+
+- 顶点着色器（Vertex Shader）
+- 曲面细分控制着色器（Tessellation Control Shader）
+- 几何着色器（Geometry Shader）
+- 像素/片元着色器（Fragment Shader）
+- 计算着色器（Compute Shader）
+- ...
+
+![](../images/GPU/gpu-program.png)
+
+这些着色器形成流水线式的并行化的渲染管线。下面将配合具体的例子说明。
+
+下段是计算漫反射的经典代码：
+
+```c++
+sampler mySamp;
+Texture2D<float3> myTex;
+float3 lightDir;
+
+float4 diffuseShader(float3 norm, float2 uv)
+{
+  float3 kd;
+  kd = myTex.Sample(mySamp, uv);
+  kd *= clamp( dot(lightDir, norm), 0.0, 1.0);
+  return float4(kd, 1.0);
+}
+```
+
+经过编译后成为汇编代码
+
+```ass
+<diffuseShader>:
+sample r0, v4, t0, s0
+mul    r3, v0, cb0[0]
+madd   r3, v1, cb0[1], r3
+madd   r3, v2, cb0[2], r3
+clmp   r3, r3, l(0.0), l(1.0)
+mul    o0, r0, r3
+mul    o1, r1, r3
+mul    o2, r2, r3
+mov    o3, l(1.0)
+```
+
+在执行阶段，以上汇编代码会被 GPU 推送到执行上下文（Execution Context），然后 ALU 会逐条获取（Detch）、解码（Decode）汇编指令，并执行它们。
+
+![](../images/GPU/pipeline.png)
+
+以上示例图只是单个 ALU 的执行情况，实际上，GPU 有几十甚至上百个执行单元在同时执行 shader 指令：
+
+![](../images/GPU/multicore.png)
+
+对于 SIMT 架构的 GPU，汇编指令有所不同，变成了 SIMT 特定指令代码：
+
+```ass
+<VEC8_diffuseShader>:
+VEC8_sample vec_r0, vec_v4, t0, vec_s0
+VEC8_mul    vec_r3, vec_v0, cb0[0]
+VEC8_madd   vec_r3, vec_v1, cb0[1], vec_r3
+VEC8_madd   vec_r3, vec_v2, cb0[2], vec_r3
+VEC8_clmp   vec_r3, vec_r3, l(0.0), l(1.0)
+VEC8_mul    vec_o0, vec_r0, vec_r3
+VEC8_mul    vec_o1, vec_r1, vec_r3
+VEC8_mul    vec_o2, vec_r2, vec_r3
+VEC8_mov    o3, l(1.0)
+```
+
+并且 Context 以 Core 为单位组成共享的结构，同一个 Core 的多个 ALU 共享一组 Context：
+
+![](../images/GPU/SIMT-ass.png)
+
+如果有多个 Core，就会有更多的 ALU 同时参与 shader 计算，每个 Core 执行的数据是不一样的，可能是顶点、图元、像素等任何数据：
+
+![](../images/GPU/multi-alu.png)
+
+## 利用扩展例证
+
+略，详见参考文献
+
+## 总结
+
+### CPU vs GPU
+
+|              | CPU          | GPU          |
+| ------------ | ------------ | ------------ |
+| 延迟容忍度   | 低           | 高           |
+| 并行目标     | 任务（Task） | 数据（Data） |
+| 核心架构     | 多线程核心   | SIMT 核心    |
+| 线程数量级别 | 10           | 10000        |
+| 吞吐量       | 低           | 高           |
+| 缓存需求量   | 高           | 低           |
+| 线程独立性   | 低           | 高           |
+
+它们之间的差异（缓存、核心数量、内存、线程数等）可用下图展示出来：
+
+![](../images/GPU/cpuvsgpu.png)
+
 ## Reference
 
-https://www.cnblogs.com/timlly/p/11471507.html
+https://www.cnoblogs.com/timlly/p/11471507.html
