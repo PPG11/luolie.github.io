@@ -149,7 +149,12 @@ g++-10 hello.cpp -o hello.o -L $SYSTEMC_HOME/lib -I $SYSTEMC_HOME/include -l sys
 
 这里逐个参数讲解一下
 
-- g++-10
+- `g++-10`: 使用 `g++` version10 作为编译器
+- `hello.cpp`: 编译的主文件
+- `-o hello.o`: 输出文件名
+- `-L $SYSTEMC_HOME/lib`: 第一个寻找的库文件目录
+- `-I $SYSTEMC_HOME/include`: 第一个寻找的头文件目录
+- `-l systemc`: 在上面库文件寻找名叫 `libsystemc.a` 的动态库文件
 
 3. 运行一下
 
