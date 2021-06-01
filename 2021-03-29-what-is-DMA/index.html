@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="DMA 本来不属于 CPU 体系架构部分的内容，只因为在开发中经常要用到其相关的知识，所以这里就其基本概念、工作原理、常见问题做一个总结。 概述DMA 的英文拼写是“Direct Memory Access”，汉语的意思就是直接内存访问。 DMA 既可以指内存和外设直接存取数据这种内存访问的计算机技术，又可以指实现该技术的硬件模块（对于通用计算机 PC 而言，DMA 控制逻辑由 CPU 和 DMA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="what-is-DMA">
+<meta property="og:url" content="http://example.com/2021-03-29-what-is-DMA/">
+<meta property="og:site_name" content="罗列的博客">
+<meta property="og:description" content="DMA 本来不属于 CPU 体系架构部分的内容，只因为在开发中经常要用到其相关的知识，所以这里就其基本概念、工作原理、常见问题做一个总结。 概述DMA 的英文拼写是“Direct Memory Access”，汉语的意思就是直接内存访问。 DMA 既可以指内存和外设直接存取数据这种内存访问的计算机技术，又可以指实现该技术的硬件模块（对于通用计算机 PC 而言，DMA 控制逻辑由 CPU 和 DMA">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/source/images/DMA.jpeg">
+<meta property="og:image" content="http://example.com/source/images/DMArun.jpeg">
+<meta property="article:published_time" content="2021-03-29T03:44:18.000Z">
+<meta property="article:modified_time" content="2021-04-02T10:55:04.954Z">
+<meta property="article:author" content="Luo Lie">
+<meta property="article:tag" content="体系结构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/source/images/DMA.jpeg">
+
+<link rel="canonical" href="http://example.com/2021-03-29-what-is-DMA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>what-is-DMA | 罗列的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">罗列的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个罗列发呆的地方</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-03-29-what-is-DMA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          what-is-DMA
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-29 11:44:18" itemprop="dateCreated datePublished" datetime="2021-03-29T11:44:18+08:00">2021-03-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-02 18:55:04" itemprop="dateModified" datetime="2021-04-02T18:55:04+08:00">2021-04-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>DMA 本来不属于 CPU 体系架构部分的内容，只因为在开发中经常要用到其相关的知识，所以这里就其基本概念、工作原理、常见问题做一个总结。</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>DMA 的英文拼写是“Direct Memory Access”，汉语的意思就是直接内存访问。</p>
+<p>DMA 既可以指内存和外设直接存取数据这种内存访问的计算机技术，又可以指实现该技术的硬件模块（对于通用计算机 PC 而言，DMA 控制逻辑由 CPU 和 DMA 控制接口逻辑芯片共同组成，嵌入式系统的 DMA 控制器内建在处理器芯片内部，一般称为 DMA 控制器，DMAC）。</p>
+<p><strong>DMA 是一个控制器！</strong></p>
+<h2 id="DMA-内存访问"><a href="#DMA-内存访问" class="headerlink" title="DMA 内存访问"></a>DMA 内存访问</h2><p>使用 DMA 的好处就是它不需要 CPU 的干预而直接服务外设，这样 CPU 就可以去处理别的事务，从而提高系统的效率。</p>
+<p>对于慢速设备，如 UART，其作用只是降低 CPU 的使用率，但对于高速设备，如硬盘，它不只是降低 CPU 的使用率，而且能大大提高硬件设备的吞吐量。</p>
+<p>因为对于这种设备，CPU 直接供应数据的速度太低，因 CPU 只能一个总线周期最多存取一次总线，而且对于 ARM，它不能把内存中 A 地址的值直接搬到 B 地址。它只能先把 A 地址的值搬到一个寄存器，然后再从这个寄存器搬到 B 地址。也就是说，对于 ARM，要花费两个总线周期才能将 A 地址的值送到 B 地址。</p>
+<p>而 DMA 就不同了，一般系统中的 DMA 都有突发（Burst）传输的能力，在这种模式下，DMA 能一次传输几个甚至几十个字节的数据，所以使用 DMA 能使设备的吞吐能力大为增强。</p>
+<p>考虑到虚拟内存技术，注意这几个点：</p>
+<ul>
+<li>DMA 使用物理地址，程序是使用虚拟地址的，所以配置 DMA 时必须将虚拟地址转化成物理地址。</li>
+<li>因为程序使用虚拟地址，而且一般使用 cache 地址，所以 Cache 中的内容与其物理地址（内存）的内容不一定一致，所以在启动 DMA 传输前一定要将该地址的 cache 刷新，即写入内存。</li>
+<li>OS 并不能保证每次分配到的内存空间在物理上是连续的。尤其是在系统使用过一段时间而又分配了一块比较大的内存时。所以每次都需要判断地址是不是连续的，如果不连续就需要把这段内存分成几段让 DMA 完成传输</li>
+</ul>
+<h2 id="嵌入式设备的-DMA"><a href="#嵌入式设备的-DMA" class="headerlink" title="嵌入式设备的 DMA"></a>嵌入式设备的 DMA</h2><p>直接存储器存取(DMA)控制器是一种在系统内部转移数据的独特外设，可以将其视为一种能够通过一组专用总线将内部和外部存储器与每个具有 DMA 能力的外设连接起来的控制器。它之所以属于外设，是因为它是在处理器的编程控制下来执行传输的。值得注意的是，通常只有数据流量较大(kBps 或者更高)的外设才需要支持 DMA 能力，这些应用方面典型的例子包括视频、音频和网络接口。</p>
+<p>一般而言，DMA 控制器将包括一条地址总线、一条数据总线和控制寄存器。高效率的 DMA 控制器将具有访问其所需要的任意资源的能力，而无须处理器本身的介入，它必须能产生中断。最后，它必须能在控制器内部计算出地址。</p>
+<p>一个处理器可以包含多个 DMA 控制器。每个控制器有多个 DMA 通道，以及多条直接与存储器站(memory bank)和外设连接的总线，如图所示。在很多高性能处理器中集成了两种类型的 DMA 控制器。</p>
+<p><img src="/source/images/DMA.jpeg"></p>
+<p>第一类通常称为“系统 DMA 控制器”，可以实现对任何资源(外设和存储器)的访问，对于这种类型的控制器来说，信号周期数是以系统时钟(SCLK)来计数的，以 ADI 的 Blackfin 处理器为例，频率最高可达 133MHz。</p>
+<p>第二类称为内部存储器 DMA 控制器(IMDMA)，专门用于内部存储器所处位置之间的相互存取操作。因为存取都发生在内部(L1－L1、L1－L2，或者 L2－L2)，周期数的计数则以内核时钟(CCLK)为基准来进行，该时钟的速度可以超过 600MHz。</p>
+<p>每个 DMA 控制器有一组 FIFO，起到 DMA 子系统和外设或存储器之间的缓冲器的作用。对于 MemDMA(Memory DMA)来说，传输的源端和目标端都有一组 FIFO 存在。当资源紧张而不能完成数据传输的话，则 FIFO 可以提供数据的暂存区，从而提高性能。</p>
+<p>因为通常会在代码初始化过程中对 DMA 控制器进行配置，内核就只需要在数据传输完成后对中断做出响应即可。你可以对 DMA 控制进行编程，让其与内核并行地移动数据，而同时让内核执行其基本的处理任务―那些应该让它专注完成的工作。</p>
+<p>在一个优化的应用中，内核永远不用参与任何数据的移动，而仅仅对 L1 存储器中的数据进行读写。于是，内核不需要等待数据的到来，因为 DMA 引擎会在内核准备读取数据之前将数据准备好。图 2 给出了处理器和 DMA 控制器间的交互关系。</p>
+<p>由处理器完成的操作步骤包括：建立传输，启用中断，生成中断时执行代码。返回到处理器的中断输入可以用来指示“数据已经准备好，可进行处理”。</p>
+<p><img src="/source/images/DMArun.jpeg"></p>
+<p>数据除了往来外设之外，还需要从一个存储器空间转移到另一个空间中。例如，视频源可以从一个 视频端口直接流入 L3 存储器，因为工作缓冲区规模太大，无法放入到存储器中。我们并不希望让处理器在每次需要执行计算时都从外部存储读取像素信息，因此为 了提高存取的效率，可以用一个存储器到存储器的 DMA(MemDMA)来将像素转移到 L1 或者 L2 存储器中。</p>
+<p>到目前为止，我们还仅专注于数据的移动，但是 DMA 的传送能力并不总是用来移动数据。</p>
+<p>在最简单的 MemDMA 情况中，我们需要告诉 DMA 控制器源端地址、目标端地址和待传送的字的个数。每次传输的字的大小可以是 8、16 或者 12 位。 我们只需要改变数据传输每次的数据大小，就可以简单地增加 DMA 的灵活性。例如，采用非单一大小的传输方式时，我们以传输数据块的大小的倍数来作为地址增量。也就是说，若规定 32 位的传输和 4 个采样的跨度，则每次传输结束后，地址的增量为 16 字节(4 个 32 位字)。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a target="_blank" rel="noopener" href="https://nieyong.github.io/wiki_cpu/CPU%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84-DMA.html">https://nieyong.github.io/wiki_cpu/CPU%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84-DMA.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" rel="tag"># 体系结构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021-03-21-lldb-10-min/" rel="prev" title="lldb-10-min">
+      <i class="fa fa-chevron-left"></i> lldb-10-min
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021-04-01-cache-coherence/" rel="next" title="Cache 一致性协议">
+      Cache 一致性协议 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DMA-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE"><span class="nav-number">2.</span> <span class="nav-text">DMA 内存访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B5%8C%E5%85%A5%E5%BC%8F%E8%AE%BE%E5%A4%87%E7%9A%84-DMA"><span class="nav-number">3.</span> <span class="nav-text">嵌入式设备的 DMA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luo Lie"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Luo Lie</p>
+  <div class="site-description" itemprop="description">这是一个罗列发呆的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppg11" title="PPG11 → https:&#x2F;&#x2F;github.com&#x2F;ppg11" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luolie0577@gmail.com" title="E-Mail → luolie0577@gmail.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/6618849018" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;6618849018" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luo Lie</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

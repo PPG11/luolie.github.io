@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="MESI处理器上有一套完整的协议，来保证 Cache 一致性。比较经典的 Cache 一致性协议当属 MESI 协议，奔腾处理器有使用它，很多其他的处理器都是使用它的变种。 单核 Cache 中每个 Cache line 有 2 个标志：dirty 和 valid 标志，它们很好的描述了 Cache 和 Memory(内存)之间的数据关系(数据是否有效，数据是否被修改)，而在多核处理器中，多个核会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cache 一致性协议">
+<meta property="og:url" content="http://example.com/2021-04-01-cache-coherence/">
+<meta property="og:site_name" content="罗列的博客">
+<meta property="og:description" content="MESI处理器上有一套完整的协议，来保证 Cache 一致性。比较经典的 Cache 一致性协议当属 MESI 协议，奔腾处理器有使用它，很多其他的处理器都是使用它的变种。 单核 Cache 中每个 Cache line 有 2 个标志：dirty 和 valid 标志，它们很好的描述了 Cache 和 Memory(内存)之间的数据关系(数据是否有效，数据是否被修改)，而在多核处理器中，多个核会">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-01T09:30:45.000Z">
+<meta property="article:modified_time" content="2021-04-02T10:55:04.954Z">
+<meta property="article:author" content="Luo Lie">
+<meta property="article:tag" content="体系结构">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021-04-01-cache-coherence/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Cache 一致性协议 | 罗列的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">罗列的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个罗列发呆的地方</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-01-cache-coherence/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Cache 一致性协议
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-01 17:30:45" itemprop="dateCreated datePublished" datetime="2021-04-01T17:30:45+08:00">2021-04-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-02 18:55:04" itemprop="dateModified" datetime="2021-04-02T18:55:04+08:00">2021-04-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="MESI"><a href="#MESI" class="headerlink" title="MESI"></a>MESI</h2><p>处理器上有一套完整的协议，来保证 Cache 一致性。比较经典的 Cache 一致性协议当属 MESI 协议，奔腾处理器有使用它，很多其他的处理器都是使用它的变种。</p>
+<p>单核 Cache 中每个 Cache line 有 2 个标志：dirty 和 valid 标志，它们很好的描述了 Cache 和 Memory(内存)之间的数据关系(数据是否有效，数据是否被修改)，而在多核处理器中，多个核会共享一些数据，MESI 协议就包含了描述共享的状态。</p>
+<p>在 MESI 协议中，每个 Cache line 有 4 个状态，可用 2 个 bit 表示，它们分别是：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M(Modified)</td>
+<td>这行数据有效，数据被修改了，和内存中的数据不一致，数据只存在于本 Cache 中。</td>
+</tr>
+<tr>
+<td>E(Exclusive)</td>
+<td>这行数据有效，数据和内存中的数据一致，数据只存在于本 Cache 中。</td>
+</tr>
+<tr>
+<td>S(Shared)</td>
+<td>这行数据有效，数据和内存中的数据一致，数据存在于很多 Cache 中。</td>
+</tr>
+<tr>
+<td>I(Invalid)</td>
+<td>这行数据无效。</td>
+</tr>
+</tbody></table>
+<p>M(Modified)和 E(Exclusive)状态的 Cache line，数据是独有的，不同点在于 M 状态的数据是 dirty 的(和内存的不一致)，E 状态的数据是 clean 的(和内存的一致)。</p>
+<p>S(Shared)状态的 Cache line，数据和其他 Core 的 Cache 共享。只有 clean 的数据才能被多个 Cache 共享。</p>
+<p>I(Invalid)表示这个 Cache line 无效。</p>
+<p>当内核需要访问的数据不在本 Cache 中，而其它 Cache 有这份数据的备份时，本 Cache 既可以从内存中导入数据，也可以从其它 Cache 中导入数据，不同的处理器会有不同的选择。</p>
+<p>MESI 协议为了使自己更加通用，没有定义这些细节，只定义了状态之间的迁移，下面的描述假设本 Cache 从内存中导入数据。</p>
+<h3 id="Invalid"><a href="#Invalid" class="headerlink" title="Invalid:"></a>Invalid:</h3><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>行为</th>
+<th align="center">next state</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>local Read</td>
+<td>如果其它 Cache 没有这份数据，本 Cache 从内存中取数据，Cache line 状态变成 E；如果其它 Cache 有这份数据，且状态为 M，则将数据更新到内存，本 Cache 再从内存中取数据，2 个 Cache 的 Cache line 状态都变成 S；如果其它 Cache 有这份数据，且状态为 S 或者 E，本 Cache 从内存中取数据，这些 Cache 的 Cache line 状态都变成 S</td>
+<td align="center">E/S</td>
+</tr>
+<tr>
+<td>Local Write</td>
+<td>从内存中取数据，在 Cache 中修改，状态变成 M；如果其它 Cache 有这份数据，且状态为 M，则要先将数据更新到内存；如果其它 Cache 有这份数据，则其它 Cache 的 Cache line 状态变成 I</td>
+<td align="center">M</td>
+</tr>
+<tr>
+<td>Remote Read</td>
+<td>既然是 Invalid，别的核的操作与它无关</td>
+<td align="center">I</td>
+</tr>
+<tr>
+<td>Remote Write</td>
+<td>既然是 Invalid，别的核的操作与它无关</td>
+<td align="center">I</td>
+</tr>
+</tbody></table>
+<h3 id="Exclusive"><a href="#Exclusive" class="headerlink" title="Exclusive:"></a>Exclusive:</h3><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>行为</th>
+<th align="center">next state</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local Read</td>
+<td>从 Cache 中取数据，状态不变</td>
+<td align="center">E</td>
+</tr>
+<tr>
+<td>Local Write</td>
+<td>修改 Cache 中的数据，状态变成 M</td>
+<td align="center">M</td>
+</tr>
+<tr>
+<td>Remote Read</td>
+<td>数据和其它核共用，状态变成了 S</td>
+<td align="center">S</td>
+</tr>
+<tr>
+<td>Remote Write</td>
+<td>数据被修改，本 Cache line 不能再使用，状态变成 I</td>
+<td align="center">I</td>
+</tr>
+</tbody></table>
+<h3 id="Shared"><a href="#Shared" class="headerlink" title="Shared:"></a>Shared:</h3><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>行为</th>
+<th align="center">next state</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local Read</td>
+<td>从 Cache 中取数据，状态不变</td>
+<td align="center">S</td>
+</tr>
+<tr>
+<td>Local Write</td>
+<td>修改 Cache 中的数据，状态变成 M，其它核共享的 Cache line 状态变成 I</td>
+<td align="center">M</td>
+</tr>
+<tr>
+<td>Remote Read</td>
+<td>状态不变</td>
+<td align="center">S</td>
+</tr>
+<tr>
+<td>Remote Write</td>
+<td>数据被修改，本 Cache line 不能再使用，状态变成 I</td>
+<td align="center">I</td>
+</tr>
+</tbody></table>
+<h3 id="Modified"><a href="#Modified" class="headerlink" title="Modified:"></a>Modified:</h3><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>行为</th>
+<th align="center">next state</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local Read</td>
+<td>从 Cache 中取数据，状态不变</td>
+<td align="center">M</td>
+</tr>
+<tr>
+<td>Local Write</td>
+<td>修改 Cache 中的数据，状态不变</td>
+<td align="center">M</td>
+</tr>
+<tr>
+<td>Remote Read</td>
+<td>这行数据被写到内存中，使其它核能使用到最新的数据，状态变成 S</td>
+<td align="center">S</td>
+</tr>
+<tr>
+<td>Remote Write</td>
+<td>这行数据被写到内存中，使其它核能使用到最新的数据，由于其它核会修改这行数据，状态变成 I</td>
+<td align="center">I</td>
+</tr>
+</tbody></table>
+<p>AMD 的 Opteron 处理器使用从 MESI 中演化出的 MOESI 协议，O(Owned)是 MESI 中 S 和 M 的一个合体，表示本 Cache line 被修改，和内存中的数据不一致，不过其它的核可以有这份数据的拷贝，状态为 S。</p>
+<p>Intel 的 core i7 处理器使用从 MESI 中演化出的 MESIF 协议，F(Forward)从 Share 中演化而来，一个 Cache line 如果是 Forward 状态，它可以把数据直接传给其它内核的 Cache，而 Share 则不能。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" rel="tag"># 体系结构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021-03-29-what-is-DMA/" rel="prev" title="what-is-DMA">
+      <i class="fa fa-chevron-left"></i> what-is-DMA
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021-04-06-the-zen-of-python/" rel="next" title="the Zen of Python">
+      the Zen of Python <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MESI"><span class="nav-number">1.</span> <span class="nav-text">MESI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Invalid"><span class="nav-number">1.1.</span> <span class="nav-text">Invalid:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exclusive"><span class="nav-number">1.2.</span> <span class="nav-text">Exclusive:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shared"><span class="nav-number">1.3.</span> <span class="nav-text">Shared:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Modified"><span class="nav-number">1.4.</span> <span class="nav-text">Modified:</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luo Lie"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Luo Lie</p>
+  <div class="site-description" itemprop="description">这是一个罗列发呆的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppg11" title="PPG11 → https:&#x2F;&#x2F;github.com&#x2F;ppg11" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luolie0577@gmail.com" title="E-Mail → luolie0577@gmail.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/6618849018" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;6618849018" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luo Lie</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

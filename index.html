@@ -164,7 +164,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021-01-23-uniswap/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-06-01-C-multiproject-compile/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -178,7 +178,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021-01-23-uniswap/" class="post-title-link" itemprop="url">uniswap</a>
+            <a href="/2021-06-01-C-multiproject-compile/" class="post-title-link" itemprop="url">C++-multiproject-compile</a>
         </h2>
 
         <div class="post-meta">
@@ -189,16 +189,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-01-23 10:30:36 / 修改时间：10:31:04" itemprop="dateCreated datePublished" datetime="2021-01-23T10:30:36+08:00">2021-01-23</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%A7%91%E6%99%AE/" itemprop="url" rel="index"><span itemprop="name">知识科普</span></a>
-                </span>
+              <time title="创建时间：2021-06-01 11:30:53 / 修改时间：12:18:12" itemprop="dateCreated datePublished" datetime="2021-06-01T11:30:53+08:00">2021-06-01</time>
             </span>
 
           
@@ -212,7 +203,29 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <p>主要是在使用 SystemC 的时候遇到的，一般 C++ 的文件组织形式都是 <code>h</code> 文件放在 <code>include/</code> 下，但是在使用 SystemC 时，每个 <code>.h</code> 和 <code>.cpp</code> 都是成套出现的，这里就想要按照每个 module 一起的组织的方式。</p>
+<p>即想组织成如下结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── main.cpp</span><br><span class="line">├── CMakeLists.txt</span><br><span class="line">├── Module1</span><br><span class="line">│   ├── module1.h</span><br><span class="line">│   ├── module1.cpp</span><br><span class="line">│   └── CMakeLists.txt</span><br><span class="line">└── Module2</span><br><span class="line">    ├── module2.h</span><br><span class="line">    ├── module2.cpp</span><br><span class="line">    └── CMakeLists.txt</span><br></pre></td></tr></table></figure>
+<p>下面开始吧</p>
+<h2 id="文件组织"><a href="#文件组织" class="headerlink" title="文件组织"></a>文件组织</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── main.cpp</span><br><span class="line">├── CMakeLists.txt</span><br><span class="line">├── hello</span><br><span class="line">│   ├── CMakeLists.txt</span><br><span class="line">│   ├── hello.cpp</span><br><span class="line">│   └── hello.h</span><br><span class="line">└── world</span><br><span class="line">    ├── CMakeLists.txt</span><br><span class="line">    ├── world.cpp</span><br><span class="line">    └── world.h</span><br></pre></td></tr></table></figure>
+<h2 id="顶层目录"><a href="#顶层目录" class="headerlink" title="顶层目录"></a>顶层目录</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;world.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    hello();</span><br><span class="line">    world();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CMakeLists.txt</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">2.8</span>)</span><br><span class="line"><span class="keyword">project</span>(helloworld)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add the source in project root directory</span></span><br><span class="line"><span class="keyword">aux_source_directory</span>(. DIRSRCS)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add header file include directories</span></span><br><span class="line"><span class="keyword">include_directories</span>(</span><br><span class="line">    ./</span><br><span class="line">    ./hello</span><br><span class="line">    ./world</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add block directories</span></span><br><span class="line"><span class="keyword">add_subdirectory</span>(hello)</span><br><span class="line"><span class="keyword">add_subdirectory</span>(world)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Target</span></span><br><span class="line"><span class="keyword">add_executable</span>(helloworld <span class="variable">$&#123;DIRSRCS&#125;</span>)</span><br><span class="line"><span class="keyword">target_link_libraries</span>(helloworld hello world)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="hello"><a href="#hello" class="headerlink" title="hello/"></a><code>hello/</code></h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> HELLO_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HELLO_H</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">hello</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">hello</span><span class="params">()</span> </span>&#123; <span class="built_in">printf</span>(<span class="string">&quot;hello\n&quot;</span>); &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># hello/CMakeLists.txt</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">aux_source_directory</span>(. DIR_HELLO_SRCS)</span><br><span class="line"><span class="keyword">add_library</span>(hello <span class="variable">$&#123;DIR_HELLO_SRCS&#125;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="world"><a href="#world" class="headerlink" title="world/"></a><code>world/</code></h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// world.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> WORLD_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> WORLD_H</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">world</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// world.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;world.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">world</span><span class="params">()</span> </span>&#123; <span class="built_in">printf</span>(<span class="string">&quot;world\n&quot;</span>); &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># world/CMakeLists.txt</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">aux_source_directory</span>(. DIR_WORLD_SRCS)</span><br><span class="line"><span class="keyword">add_library</span>(world <span class="variable">$&#123;DIR_WORLD_SRCS&#125;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>其实主要看其中的三个 <code>CMakeLists.txt</code> 的文件就可以了</p>
+<p>在子模块中的 <code>CMake</code> 就是把当前目录下所有文件写入对应名字的<code>library</code>中，如<code>hello</code>、<code>world</code></p>
+<p>然后顶层目录文件需要做三件事</p>
+<ol>
+<li><code>include_directories</code>：将 <code>#include</code> 的目录放进来:</li>
+<li><code>add_subdirectory</code>：将刚才写好的<code>library</code>放进来（找到对应目录下的 sub-library）</li>
+<li><code>target_link_libraries</code>：将刚才的<code>library</code>和主文件链接上</li>
+</ol>
+<p>即可</p>
+
       
     </div>
 
@@ -231,7 +244,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021-01-21-c-shared-prt/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-05-24-systemC-var-type/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -245,7 +258,101 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021-01-21-c-shared-prt/" class="post-title-link" itemprop="url">c++-shared_prt</a>
+            <a href="/2021-05-24-systemC-var-type/" class="post-title-link" itemprop="url">systemC 值保持器</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-24 18:23:31" itemprop="dateCreated datePublished" datetime="2021-05-24T18:23:31+08:00">2021-05-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-01 11:33:19" itemprop="dateModified" datetime="2021-06-01T11:33:19+08:00">2021-06-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="在-systemC-中变量分三种"><a href="#在-systemC-中变量分三种" class="headerlink" title="在 systemC 中变量分三种"></a>在 <code>systemC</code> 中变量分三种</h2><ul>
+<li>变量(variable)：普通 C 变量</li>
+<li>信号(signal)：组件内连接（<code>sc_signal</code>）</li>
+<li>端口(port)：I/O 口（<code>sc_in / sc_out</code>）</li>
+</ul>
+<p>注意这里也有“变量”，所以在 <code>systemC</code> 中一般把常规意义上的“变量”称呼为“值保持器”</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 变量</span></span><br><span class="line"><span class="comment">// type v1, v2;</span></span><br><span class="line"><span class="keyword">int</span> v1;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 信号</span></span><br><span class="line"><span class="comment">// sc_signal&lt;type&gt; s1, s2;</span></span><br><span class="line">sc_signal&lt;<span class="keyword">bool</span>&gt; s1;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 端口</span></span><br><span class="line"><span class="comment">// sc_in&lt;type&gt;, sc_out&lt;type&gt;, sc_inout&lt;type&gt;</span></span><br><span class="line">sc_in&lt;<span class="keyword">bool</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>注意这里信号和端口都是用来描述硬件结构的，所有想要对于“值保持器”的操作都应该传递给“变量”后再操作，具体见下节。</p>
+<p>所有的值保持器都可以作为 C 语法中的“变量”，使用数组、指针等。</p>
+<blockquote>
+<p>在 SC 中，特色的可作为左值和右值的有五种：</p>
+<ul>
+<li>变量</li>
+<li>信号</li>
+<li>端口</li>
+<li>位选取结果 <code>[]</code></li>
+<li>位区间选取结果 <code>.range()</code></li>
+</ul>
+</blockquote>
+<h2 id="位选取-和位区间选取-range"><a href="#位选取-和位区间选取-range" class="headerlink" title="位选取[]和位区间选取.range()"></a>位选取<code>[]</code>和位区间选取<code>.range()</code></h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">sc_signal&lt;sc_bv&lt;<span class="number">4</span>&gt;&gt; dval;</span><br><span class="line">sc_in&lt;sc_bv&lt;<span class="number">8</span>&gt;&gt; addr;</span><br><span class="line"></span><br><span class="line">sc_bv&lt;<span class="number">4</span>&gt; var_dval;</span><br><span class="line">sc_bv&lt;<span class="number">8</span>&gt; var_addr;</span><br><span class="line"><span class="keyword">bool</span> ready;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// for sc_in port, need to use read()</span></span><br><span class="line">var_addr = addr.read();</span><br><span class="line"><span class="comment">// do something, eg:</span></span><br><span class="line">ready = var_addr[<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">var_dval = dval;</span><br><span class="line">var_dval.range(<span class="number">2</span>, <span class="number">0</span>) = <span class="string">&quot;011&quot;</span>;</span><br><span class="line">dval = var_dval;</span><br></pre></td></tr></table></figure>
+<p>还有一种比较有特色的分配方式，只有当是位向量 vector 类型时（如 sc_bv 或者 sc_lv 等）</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sc_bv&lt;<span class="number">8</span>&gt; ctrl_bus;</span><br><span class="line">sc_bv&lt;<span class="number">4</span>&gt; mult;</span><br><span class="line"></span><br><span class="line">mult = (ctrl_bus[<span class="number">0</span>], ctrl_bus[<span class="number">2</span>], ctrl_bus[<span class="number">0</span>], ctrl_but[<span class="number">2</span>])</span><br></pre></td></tr></table></figure>
+<h2 id="位-逻辑类型"><a href="#位-逻辑类型" class="headerlink" title="位 / 逻辑类型"></a>位 / 逻辑类型</h2><blockquote>
+<p>此类型只能做逻辑运算与或非，不能做算数运算</p>
+</blockquote>
+<p>位类型 <code>(&#39;1&#39; / &#39;0&#39;)</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1 bit</span></span><br><span class="line"><span class="keyword">bool</span> v1;</span><br><span class="line"><span class="comment">// vector</span></span><br><span class="line">sc_bv&lt;<span class="number">4</span>&gt; v2;</span><br></pre></td></tr></table></figure>
+<p>逻辑类型 <code>(&#39;1&#39; / &#39;0&#39; / &#39;X&#39; / &#39;Z&#39;)</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sc_logic_0 <span class="comment">// &#x27;0&#x27;</span></span><br><span class="line">sc_logic_1 <span class="comment">// &#x27;1&#x27;</span></span><br><span class="line">sc_logic_X <span class="comment">// &#x27;X&#x27;</span></span><br><span class="line">sc_logic_Z <span class="comment">// &#x27;Z&#x27;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1 bit</span></span><br><span class="line">sc_logic v1;</span><br><span class="line"><span class="comment">// vector</span></span><br><span class="line">sc_lv&lt;<span class="number">8</span>&gt; v2;</span><br></pre></td></tr></table></figure>
+<h2 id="有-无符号整形"><a href="#有-无符号整形" class="headerlink" title="有/无符号整形"></a>有/无符号整形</h2>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-05-24-c-fstream/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-05-24-c-fstream/" class="post-title-link" itemprop="url">C++ 文件读写</a>
         </h2>
 
         <div class="post-meta">
@@ -256,16 +363,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-01-21 16:02:51 / 修改时间：17:10:35" itemprop="dateCreated datePublished" datetime="2021-01-21T16:02:51+08:00">2021-01-21</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9D%A2%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">面试</span></a>
-                </span>
+              <time title="创建时间：2021-05-24 18:10:29 / 修改时间：18:12:16" itemprop="dateCreated datePublished" datetime="2021-05-24T18:10:29+08:00">2021-05-24</time>
             </span>
 
           
@@ -279,7 +377,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <p>一个读入文件的方法，这里调用了<code>iostream</code> 中的 <code>getline</code> 方法</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buff[<span class="number">100</span>];</span><br><span class="line">    <span class="function">ifstream <span class="title">infile</span><span class="params">(<span class="string">&quot;t.txt&quot;</span>)</span></span>;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;reading from t.txt&quot;</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;the data is: &quot;</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">while</span> (!infile.eof()) &#123;</span><br><span class="line">        infile.getline(buff, <span class="number">100</span>);</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; buff &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;END!!&quot;</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    infile.close();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -298,7 +397,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021-01-12-Blockchain-knowledge-for-papamama/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-05-20-cmake-learn/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -312,7 +411,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021-01-12-Blockchain-knowledge-for-papamama/" class="post-title-link" itemprop="url">写给爸爸妈妈看的区块链知识</a>
+            <a href="/2021-05-20-cmake-learn/" class="post-title-link" itemprop="url">cmake-learn</a>
         </h2>
 
         <div class="post-meta">
@@ -322,24 +421,15 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-01-12 13:32:08" itemprop="dateCreated datePublished" datetime="2021-01-12T13:32:08+08:00">2021-01-12</time>
+              <time title="创建时间：2021-05-20 15:58:59" itemprop="dateCreated datePublished" datetime="2021-05-20T15:58:59+08:00">2021-05-20</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-01-13 21:17:30" itemprop="dateModified" datetime="2021-01-13T21:17:30+08:00">2021-01-13</time>
+                <time title="修改时间：2021-05-23 10:37:41" itemprop="dateModified" datetime="2021-05-23T10:37:41+08:00">2021-05-23</time>
               </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%A7%91%E6%99%AE/" itemprop="url" rel="index"><span itemprop="name">知识科普</span></a>
-                </span>
-            </span>
 
           
 
@@ -352,245 +442,1171 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>因为罗列最近一学期（研三上）在一家区块链公司实习，现在马上要放寒假了，回家过年时不可避免会被问“什么是区块链”之类的问题，所以打算提前捋一下相关的概念。</p>
-<blockquote>
-<p>每个板块分为两部分</p>
+          <h2 id="CMake-语法"><a href="#CMake-语法" class="headerlink" title="CMake 语法"></a>CMake 语法</h2><p>CMake 语句主要有 3 类用法：</p>
 <ul>
-<li>写给自己：只是给我自己看的，用作思考</li>
-<li>写给爸妈：把我自己的思考翻译为人话（食用时只需要阅读此部分即可）</li>
-</ul>
-</blockquote>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>区块链大概是个什么呀？</p>
-<h3 id="写给自己"><a href="#写给自己" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
-<p>其实我也经常会问我自己这个问题，区块链到底是什么？</p>
-<p>从数据结构的角度可以理解为区块链就是一个 JSON 串，隔一段时间向后插入一个新的 Block （还是一个 JSON），又用到前一个 Block 的 hash 作为头部数据</p>
-<p>这样“链表”的数据结构就构成了区块链，Block 内包括…</p>
-<p>但是这只是技术原理，其实很多人更关心的是在区块链技术上能做些什么事儿。</p>
-<p>就像是如果我能说出“机器学习”就是你手机每次解锁用的“指纹识别/人脸识别”这样虽然并不准确，还有一些以偏概全，但是能一下子让听者得到他想知道的内容的一个直观感受。</p>
-</blockquote>
-<h3 id="写给爸妈"><a href="#写给爸妈" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>区块链可以简单总结为，一个记录转信息的系统，但是这个和我们日常生活中的却不太一样。</p>
-<p>我们日常生活中一般转账一般是统一交给银行来处理，因为我们相信银行不会记错账，我通过银行转账也确实能转到对方手里。</p>
-<p>而区块链记账的原理是，所有人都拿一个小账本，任何一笔交易，比如我转账给你，我们都会拿一个大喇叭告诉所有人，我拿了xxx元给你，并且大家都在他们的记账本上记录一下我们这笔交易。</p>
-<p>所以每个人的账本既要记录自己，也要记录别人的交易内容，大家所有人账本上的内容都是一样的，这样做确实好像很麻烦，但是却能带来不少好处，这就是后面的内容。</p>
-<h2 id="为什么要设计区块链？"><a href="#为什么要设计区块链？" class="headerlink" title="为什么要设计区块链？"></a>为什么要设计区块链？</h2><h3 id="写给自己-1"><a href="#写给自己-1" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
-<p>区块链的诞生离不开一个词汇，“去中心化”。</p>
-<p>就是我们手里的钱会不会贬值完全靠发货币的机构，比如银行来控制，这样有些坏政府会靠着超发货币来满足执政者的需求，后果就是大家拼命赚钱来对抗通货膨胀，但是少数人通过控制货币政策就可以保全自己的资产。这些原因可以总结为货币以及货币的交易是过于中心化的问题（一定程度上少数人可以操控货币规则从中获利）。</p>
-<p>为了能保护自己的劳动成果，或者说为了让货币的价值控制在多数人手里，人们一直在寻找一个解决办法，当然寻找解决办法的期间会面临很多问题，比如该用什么样的货币（货币政策）、如何保证交易过程中一系列安全（科学技术问题）、怎么让大众接受这个理念（在这个技术上的生态）。</p>
-<p>区块链算是在这套体系中最后一块版图，所以大家会把这一个体系称之为区块链，而大家的目的就是在这套系统上建立一个分布式的货币规则，并且分布式的的特点让这个系统里没有“银行”的存在，也保证了对于每个人都是公平的。</p>
-<p>所以人们开始尝试逐渐在这套系统上建立一个和现实世界货币并行的新的货币体系，其中的钱也可以和人民币/美元等按照汇率兑换，当然这个汇率纯粹地尊重市场调整。</p>
-</blockquote>
-<h3 id="写给爸妈-1"><a href="#写给爸妈-1" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>民国末期有过这么一个事儿，政府为了缓解财政压力，就不停的印钱，导致的结果是老百姓手里的钱贬值，物价翻了4、5倍，不知不觉中老百姓手里的钱就不值钱了。</p>
-<p>这主要原因是当中心化的货币管理机构存在时，不可避免会出现这类事情。中国政府算是控制的好的，所以我们可能感受不深，但是美国现在都还深受其害。</p>
-<p>我看过这么一个说法，说美国总统竞选的时候疯狂的许诺自己上台以后会做的事情，因为他上台之后完全可以通过多印钱给政府来兑现承诺，但是这样破坏货币平衡就可能会导致货币的价值发生波动。</p>
-<p>在这么一个背景下，全世界都在思考有没有一个“没有中心”的货币制度，当然这期间会遇见很多难题，包括用什么样的货币，大家怎么交易之类的。总之过了很多年的学者研究，现在全世界尝试在区块链这个技术上构建这么一个货币体系。</p>
-<h2 id="区块链怎么交易呢"><a href="#区块链怎么交易呢" class="headerlink" title="区块链怎么交易呢"></a>区块链怎么交易呢</h2><h3 id="写给自己-2"><a href="#写给自己-2" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
-<p>区块链为了保证一直有使用者维护这一套系统（记账），会给每个记账者奖励数字货币，就比如比特币 BTC，而这个数字货币就会在这一套区块链上流通。而大家交易的过程中交易的也就是这些随着大家记账而越来越多的货币（所以记账的过程也称为挖矿）</p>
-<p>而具体的交易就和我们日常生活使用钱一样，比如我们买个苹果会用人民币，而如果对方接受我付美元而且我也有美元，那么我也可以付美元，同理如果对方接受区块链货币，那么我也可以付“区块链货币”。</p>
-<p>至于我该付多少，区块链货币也会有和人民币的一个汇率，而这个汇率也会市场波动。</p>
-</blockquote>
-<h3 id="写给爸妈-2"><a href="#写给爸妈-2" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>其实就和我们日常交易一样，我们可以在银行按照一定比率把手里的钱换成美元，也可以在银行按照一定比率把手里的钱换成区块链货币，然后大家按照相应的价格交易就好啦，具体方法大概就像我微信给你转账一样吧hhhh。</p>
-<p>ps当然不是每个银行都能兑换到区块链货币啊，如果你想兑换我再告诉你在什么银行hhhh。</p>
-<h2 id="大家每个人都要记账太累了吧"><a href="#大家每个人都要记账太累了吧" class="headerlink" title="大家每个人都要记账太累了吧"></a>大家每个人都要记账太累了吧</h2><h3 id="写给自己-3"><a href="#写给自己-3" class="headerlink" title="写给自己"></a>写给自己</h3><blockquote>
-<p>区块链和机器学习近些年来才活跃起来的原因是一样的，叫做算力提升。</p>
-<p>全世界能有足够多机器都在维护着这个货币平台（记账），就像是日不落帝国一样，永远有设备，永远有很多很多的设备在帮每一笔交易记账，所以这样一个貌似很麻烦的事情，其实都是机器上的脚本在运行罢了。</p>
-</blockquote>
-<h3 id="写给爸妈-3"><a href="#写给爸妈-3" class="headerlink" title="写给爸妈"></a>写给爸妈</h3><p>这个肯定不是人记账嘛，就是我们现在电脑手机性能越来越好了，所以大家就会把平时闲置的机器打开那个程序，就一直帮这个系统记账，当然花费的只是电费罢了，人还是该看电视看电视啊。</p>
-<h2 id="区块链的现在和未来"><a href="#区块链的现在和未来" class="headerlink" title="区块链的现在和未来"></a>区块链的现在和未来</h2><p>虽然区块链现在地位确实有点暧昧，因为不受控制会让政府有一些苦恼，但是现在全世界已经有无数的人在使用这么一套系统了，这个潮流肯定已经阻挡不了了。</p>
-<p>而中国人民币在全球不算强势的货币，就像现在大家还是都拿美元作为参照物，所以中国也蛮想在这种数字货币的领域中率先出击，做出一些能让人民币，或许未来的数字人民币能在世界上和美元搏一搏。</p>
-<p>说这些只是想给你们我公司不是什么非法组织啦hhhhh</p>
-<h2 id="ps-喝酒时"><a href="#ps-喝酒时" class="headerlink" title="ps. 喝酒时"></a>ps. 喝酒时</h2><ul>
-<li><p><strong>问：区块链是什么啊？</strong></p>
-</li>
-<li><p><strong>答：区块链就是帮别人炒股的平台，我们不炒股，我们提供技术支持</strong></p>
-</li>
-</ul>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>这里没涉及到但是我觉得也很重要的内容</p>
+<li><p>设置变量:</p>
 <ul>
-<li>怎么保障我自己财产安全？<ul>
-<li>RSA 非对称加密 公钥(地址)/私钥</li>
+<li><code>set</code></li>
+<li><code>file</code></li>
+<li><code>list</code></li>
+<li><code>find_library</code></li>
+<li><code>aux_source_directory</code></li>
+<li><code>$&lt;...&gt;</code>: generator expressions</li>
 </ul>
 </li>
-<li>怎么保障交易安全？<ul>
-<li>时间戳 + SHA256哈希 + 难度调整</li>
+<li><p>设置<code>target</code>: 构建的目标（一般来说就是库或者可执行文件）</p>
+<ul>
+<li><code>add_library</code></li>
+<li><code>add_executable</code></li>
 </ul>
 </li>
-<li>怎么保证不会有通货膨胀？<ul>
-<li>区块链发币规则都还有自己的经济学原理（黄皮书），通常是通货紧缩来保证货币价格越来越值钱（所以比特币越来越贵）</li>
+<li><p>设置<code>target</code>的属性: 定义如何生成 target（源文件的路径、编译选项、要链接的库…）</p>
+<ul>
+<li><code>add_definitions</code></li>
+<li><code>target_link_libraries</code></li>
+<li><code>link_directories</code></li>
+<li><code>include_directories</code></li>
+<li><code>target_include_directories</code></li>
 </ul>
 </li>
-<li>为什么相信比特币有价值<ul>
-<li>hhh这个问题无法回答，但是现代人类就是只要有一部分相信有价值，那么一样东西就是有价值的呀（而且这个相信的人还会越来越多）（共识）</li>
 </ul>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019-03-11-c++-reference-and-pointer/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="Luo Lie">
-      <meta itemprop="description" content="这是一个罗列发呆的地方">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="罗列的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019-03-11-c++-reference-and-pointer/" class="post-title-link" itemprop="url">C++ 引用和指针</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-03-11 10:09:29" itemprop="dateCreated datePublished" datetime="2019-03-11T10:09:29+08:00">2019-03-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-01-21 16:03:25" itemprop="dateModified" datetime="2021-01-21T16:03:25+08:00">2021-01-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9D%A2%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">面试</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>指针对于一个类型<code>T</code>，<code>T*</code>就是指向<code>T</code>的指针类型，也即一个<code>T*</code>类型的变量能够保存一个<code>T</code>对象的<strong>地址</strong>，而类型<code>T</code>是可以加一些限定词的，如<code>const</code>、<code>volatile</code>等等。</p>
-<h2 id="1-为什么C-C-语言使用指针？"><a href="#1-为什么C-C-语言使用指针？" class="headerlink" title="1. 为什么C/C++语言使用指针？"></a>1. 为什么C/C++语言使用指针？</h2><p>原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/gxcdream/p/4805612.html">https://www.cnblogs.com/gxcdream/p/4805612.html</a></p>
-<ol>
-<li>一方面，每一种编程语言都使用指针。不止C/C++使用指针。</li>
+<h3 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h3><ol>
+<li><code>project</code></li>
 </ol>
-<blockquote>
-<p>每一种编程语言都使用指针。C++将指针暴露给了用户(程序员)，而Java和C#等语言则将指针隐藏起来了。<br>“Everything uses pointers. C++ just exposes them rather than hiding them,”<br>It’s easier to give someone an address to your home than to give a copy of your home to everyone.</p>
-</blockquote>
+<p>设置项目的名字</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">project</span>(SYSZUXrtp)</span><br><span class="line"></span><br><span class="line"><span class="comment"># or more parm</span></span><br><span class="line"><span class="keyword">project</span>(</span><br><span class="line">    libdeepvac</span><br><span class="line">    LANGUAGES CXX</span><br><span class="line">    VERSION <span class="string">&quot;1.0.0&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="设置变量"><a href="#设置变量" class="headerlink" title="设置变量"></a>设置变量</h3><ol>
+<li><code>set(var content)</code></li>
+</ol>
+<p>其中 <code>content</code> 可以有空格换行等，第一个空格前是变量名</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(SYSZUX_HEADERS</span><br><span class="line">    <span class="keyword">include</span>/detail/class.h</span><br><span class="line">    <span class="keyword">include</span>/detail/common.h</span><br><span class="line">    <span class="keyword">include</span>/detail/descr.h</span><br><span class="line">    <span class="keyword">include</span>/detail/init.h</span><br><span class="line">    <span class="keyword">include</span>/internals.h</span><br><span class="line">    <span class="keyword">include</span>/detail/typeid.h)</span><br></pre></td></tr></table></figure>
 <ol start="2">
-<li>另一方面<br>使用指针的优点和必要性：</li>
+<li><code>file</code></li>
 </ol>
-<ul>
-<li>指针能够有效的表示数据结构；</li>
-<li>能动态分配内存，实现内存的自由管理；</li>
-<li>能较方便的使用字符串；</li>
-<li>便捷高效地使用数组</li>
-<li>指针直接与数据的储存地址有关，比如：值传递不如地址传递高效，因为值传递先从实参的地址中取出值，再赋值给形参代入函数计算；而指针则把形参的地址直接指向实参地址，使用时直接取出数据，效率提高，特别在频繁赋值等情况下（注意：形参的改变会影响实参的值！）</li>
-</ul>
-<h2 id="引用和指针有什么区别？"><a href="#引用和指针有什么区别？" class="headerlink" title="引用和指针有什么区别？"></a>引用和指针有什么区别？</h2><p>本质：引用是别名，指针是地址</p>
-<p>具体的：</p>
-<ol>
-<li>从现象上看，指针在运行时可以改变其所指向的值，而引用一旦和某个对象绑定后就不再改变。</li>
-</ol>
-<blockquote>
-<p>这句话可以理解为：指针可以被重新赋值以指向另一个不同的对象。但是引用则总是指向在初始化时被指定的对象，以后不能改变，但是指定的对象其内容可以改变。</p>
-</blockquote>
-<ol start="2">
-<li>从内存分配上看，程序为指针变量分配内存区域，而不为引用分配内存区域，因为引用声明时必须初始化，从而指向一个已经存在的对象。引用不能指向空值。</li>
-</ol>
-<blockquote>
-<p>注：标准没有规定引用要不要占用内存，也没有规定引用具体要怎么实现，具体随编译器 <a target="_blank" rel="noopener" href="http://bbs.csdn.net/topics/320095541">http://bbs.csdn.net/topics/320095541</a></p>
-</blockquote>
+<p>使用正则匹配文件，并将文件路径赋值给第一个参数（为变量）</p>
 <ol start="3">
-<li>从编译上看，程序在编译时分别将指针和引用添加到符号表上，符号表上记录的是变量名及变量所对应地址。</li>
+<li><code>list</code></li>
 </ol>
-<blockquote>
-<p>指针变量在符号表上对应的地址值为指针变量的地址值，而引用在符号表上对应的地址值为引用对象的地址值。<br>符号表生成后就不会再改，因此指针可以改变指向的对象（指针变量中的值可以改），而引用对象不能改。<br>这是使用指针不安全而使用引用安全的主要原因。从某种意义上来说引用可以被认为是不能改变的指针。</p>
-</blockquote>
+<p>针对<code>list</code>进行各种操作，如增删改查</p>
 <ol start="4">
-<li>不存在指向空值的引用这个事实，意味着使用引用的代码效率比使用指针的要高。</li>
+<li><code>find_library</code></li>
 </ol>
-<blockquote>
-<p>因为在使用引用之前不需要测试它的合法性。相反，指针则应该总是被测试，防止其为空(野指针)。</p>
-</blockquote>
+<p>寻找一个库，将找到的库的绝对路径赋值给变量。如</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">find_library</span>(LIBGEMFIELD_PATH libgemfield.so PATHS <span class="variable">$&#123;CUDA_TOOLKIT_ROOT_DIR&#125;</span>/lib64/)</span><br></pre></td></tr></table></figure>
 <ol start="5">
-<li>理论上，对于指针的级数没有限制，但是引用只能是一级。如下：</li>
+<li><code>aux_source_directory(&lt;dir&gt; &lt;var&gt;)</code></li>
 </ol>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>** p1;         <span class="comment">// 合法。指向指针的指针</span></span><br><span class="line"><span class="keyword">int</span>*&amp; p2;         <span class="comment">// 合法。指向指针的引用</span></span><br><span class="line"><span class="keyword">int</span>&amp;* p3;         <span class="comment">// 非法。指向引用的指针是非法的</span></span><br><span class="line"><span class="keyword">int</span>&amp;&amp; p4;         <span class="comment">// 非法。指向引用的引用是非法的</span></span><br></pre></td></tr></table></figure>
-<p><strong>注意上述读法是从左到右</strong>。 </p>
-<h2 id="特别之处const"><a href="#特别之处const" class="headerlink" title="特别之处const"></a>特别之处<code>const</code></h2><p>为什么要提到<code>const</code>关键字呢？因为<code>const</code>对指针和引用的限定是有差别的：</p>
-<h3 id="常量指针-amp-常量引用"><a href="#常量指针-amp-常量引用" class="headerlink" title="常量指针 &amp; 常量引用"></a>常量指针 &amp; 常量引用</h3><p><strong>顶层<code>const</code> (top-level <code>const</code>)</strong></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">int</span>* pointer = &amp;a</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>常量指针：指向常量的指针，在<strong>指针定义语句的类型前</strong>加const，表示指向的对象是常量。</li>
+<p>找到<code>dir</code>下所有的源文件赋值给<code>var</code>，如</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">aux_source_directory</span>(<span class="variable">$&#123;gemfield_root&#125;</span>/<span class="keyword">include</span> gemfield_src)</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li><code>$&lt;...&gt;</code>: generator expressions</li>
 </ol>
-<p>定义指向常量的指针只限制指针的间接访问操作，而不能规定指针指向的值本身的操作规定性。</p>
-<p>常量指针定义<code>const int* pointer = &amp;a</code>告诉编译器，<code>*pointer</code>是常量，不能将<code>*pointer</code>作为左值进行操作。</p>
+<p>生成表达式，暂略</p>
+<h3 id="设置target"><a href="#设置target" class="headerlink" title="设置target"></a>设置<code>target</code></h3><ol>
+<li><code>add_library</code></li>
+</ol>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_library</span>(&lt;name&gt; [STATIC | SHARED | MODULE]</span><br><span class="line">            [EXCLUDE_FROM_ALL]</span><br><span class="line">            source1 [source2 ...])</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">add_library</span>(gemfield_static STATIC <span class="variable">$&#123;gemfield_src_list&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>将一系列库整合命名为<code>&lt;name&gt;</code></p>
 <ol start="2">
-<li>常量引用：指向常量的引用，在引用定义语句的类型前加<code>const</code>，表示指向的对象是常量。</li>
+<li><code>add_executable</code></li>
 </ol>
-<p>也跟指针一样不能对引用指向的变量进行重新赋值操作。</p>
-<h3 id="指针常量-amp-引用常量"><a href="#指针常量-amp-引用常量" class="headerlink" title="指针常量 &amp; 引用常量"></a>指针常量 &amp; 引用常量</h3><p><strong>底层<code>const</code> (low-level <code>const</code>)</strong></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>* <span class="keyword">const</span> pointer = &amp;a</span><br></pre></td></tr></table></figure>
-<p>在<strong>指针定义语句的指针名前</strong>加<code>const</code>，表示指针本身是常量。在定义指针常量时必须初始化！</p>
-<p>而这是引用与生俱来的属性，无需使用const。</p>
-<p>指针常量定义<code>int* const pointer = &amp;b</code>告诉编译器，<code>pointer</code>(地址)是常量，不能作为左值进行操作，但是允许修改间接访问值，即<code>*pointer</code>（地址所指向内存的值）可以修改。</p>
-<h3 id="常量指针常量-amp-常量引用常量"><a href="#常量指针常量-amp-常量引用常量" class="headerlink" title="常量指针常量 &amp; 常量引用常量"></a>常量指针常量 &amp; 常量引用常量</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">int</span>* <span class="keyword">const</span> pointer = &amp;a</span><br></pre></td></tr></table></figure>
-<p>告诉编译器，<code>pointer</code>和<code>*pointer</code>都是常量，他们都不能作为左值进行操作。</p>
-<p>而不存在所谓的”常量引用常量”，因为引用变量就是引用常量。</p>
-<p><code>C++</code>不区分变量的<code>const</code>引用和<code>const</code>变量的引用。程序决不能给引用本身重新赋值，使他指向另一个变量，因此引用总是<code>const</code>的。如果对引用应用关键字<code>const</code>，起作用就是使其目标称为<code>const</code>变量。即</p>
-<p>没有:<code>const double const&amp; a = 1;</code><br>只有:</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">double</span>&amp; a = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">double</span> b = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">double</span>&amp; a = b;</span><br><span class="line">b = <span class="number">2</span>; <span class="comment">// 正确</span></span><br><span class="line">a = <span class="number">3</span>; <span class="comment">// error: assignment of read-only reference `a`</span></span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>总结：有一个规则可以很好的区分<code>const</code>是修饰指针，还是修饰指针指向的数据——画一条垂直穿过指针声明的星号（*），如果<code>const</code><br>出现在线的左边，指针指向的数据为常量；如果<code>const</code>出现在右边，指针本身为常量。而引用本身就是常量，即不可以改变指向。</p>
-</blockquote>
-<h2 id="指针传递和引用传递"><a href="#指针传递和引用传递" class="headerlink" title="指针传递和引用传递"></a>指针传递和引用传递</h2><p><strong>指针传递</strong>参数本质上是值传递的方式，它所传递的值是一个地址值。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> val = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span>* a = &amp;val;</span><br><span class="line"></span><br><span class="line">fun(*a);</span><br><span class="line"><span class="comment">// 此处仍然传递进去的是a的值，不会改变外面的</span></span><br></pre></td></tr></table></figure>
-<p>值传递过程中，被调函数的形式参数作为被调函数的局部变量处理，即在栈中开辟了内存空间以存放由主调函数放进来的实参的值，从而成为了实参的一个副本。</p>
-<p>值传递的特点是被调函数对形式参数的任何操作都是作为局部变量进行，不会影响主调函数的实参变量的值。</p>
-<p><strong>引用传递</strong>过程中，被调函数的形式参数也作为局部变量在栈中开辟了内存空间，但是这时存放的是由主调函数放进来的实参变量的地址。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> val = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span>&amp; a = val;</span><br><span class="line"></span><br><span class="line">fun(a);</span><br><span class="line"><span class="comment">// 此处放进去的a如果改变可以改变外面的a</span></span><br></pre></td></tr></table></figure>
-<p>被调函数对形参的任何操作都被处理成间接寻址，即通过栈中存放的地址访问主调函数中的实参变量。</p>
-<p>正因为如此，被调函数对形参做的任何操作都影响了主调函数中的实参变量。</p>
-<blockquote>
-<p>引用传递和指针传递是不同的，虽然它们都是在被调函数栈空间上的一个局部变量。<br>但是任何对于引用参数的处理都会通过一个间接寻址的方式操作到主调函数中的相关变量。<br>而对于指针传递的参数，如果改变被调函数中的指针地址，它将影响不到主调函数的相关变量。<br>如果想通过指针参数传递来改变主调函数中的相关变量， 那就得使用指向指针的指针，或者指针引用。</p>
-</blockquote>
-<p>从概念上讲</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_executable</span>(&lt;name&gt; [WIN32] [MACOSX_BUNDLE]</span><br><span class="line">               [EXCLUDE_FROM_ALL]</span><br><span class="line">               source1 [source2 ...])</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">add_executable</span>(gemfield_proxy <span class="variable">$&#123;gemfield_src_list&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>将源文件生成可执行文件<code>&lt;name&gt;</code></p>
+<h3 id="设置target属性"><a href="#设置target属性" class="headerlink" title="设置target属性"></a>设置<code>target</code>属性</h3><ol>
+<li><code>add_definitions</code></li>
+</ol>
+<p>定义一些属性</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_definitions</span>(-DENABLE_GEMFIELD)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><code>target_link_libraries</code></li>
+</ol>
+<p>链接</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_link_libraries</span>(&lt;<span class="keyword">target</span>&gt; [item1 [item2 [...]]]</span><br><span class="line">                      [[debug|optimized|general] &lt;item&gt;] ...)</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(</span><br><span class="line">        gemfield_proxy</span><br><span class="line">        shared_static</span><br><span class="line">        json_static</span><br><span class="line">        mpeg_static</span><br><span class="line">        <span class="variable">$&#123;LINK_LIB_LIST&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>链接<code>gemfield_proxy</code>的时候需要有后面的库</p>
+<h2 id="CMake-控制"><a href="#CMake-控制" class="headerlink" title="CMake 控制"></a>CMake 控制</h2><h3 id="if-else"><a href="#if-else" class="headerlink" title="if-else"></a><code>if-else</code></h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (xx <span class="keyword">AND</span> aa)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">elseif</span>(<span class="keyword">NOT</span> yy)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">else</span>(zz)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
+<h3 id="for"><a href="#for" class="headerlink" title="for"></a><code>for</code></h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">foreach</span>(i list_i)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">endforeach</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="内置变量"><a href="#内置变量" class="headerlink" title="内置变量"></a>内置变量</h2><h3 id="系统变量"><a href="#系统变量" class="headerlink" title="系统变量"></a>系统变量</h3><ul>
+<li><code>MAKE_MAJOR_VERSION</code> : major version number for CMake, e.g. the “2” in CMake 2.4.3</li>
+<li><code>CMAKE_MINOR_VERSION</code> : minor version number for CMake, e.g. the “4” in CMake 2.4.3</li>
+<li><code>CMAKE_PATCH_VERSION</code> : patch version number for CMake, e.g. the “3” in CMake 2.4.3</li>
+<li><code>CMAKE_TWEAK_VERSION</code> : tweak version number for CMake, e.g. the “1” in CMake X.X.X.1. Releases use tweak &lt; 20000000 and development versions use the date format CCYYMMDD for the tweak level.</li>
+<li><code>CMAKE_VERSION</code> : The version number combined, eg. 2.8.4.20110222-ged5ba for a Nightly build. or 2.8.4 for a Release build.</li>
+<li><code>CMAKE_GENERATOR</code> : the generator specified on the commandline.</li>
+<li><code>BORLAND</code> : is TRUE on Windows when using a Borland compiler</li>
+<li><code>WATCOM</code> : is TRUE on Windows when using the Open Watcom compiler</li>
+<li><code>MSVC, MSVC_IDE, MSVC60, MSVC70, MSVC71, MSVC80, CMAKE_COMPILER_2005, MSVC90, MSVC10 (Visual Studio 2010)</code> : Microsoft compiler</li>
+<li><code>CMAKE_C_COMPILER_ID</code> : one of “Clang”, “GNU”, “Intel”, or “MSVC”. This works even if a compiler wrapper like ccache is used.</li>
+<li><code>CMAKE_CXX_COMPILER_ID</code> : one of “Clang”, “GNU”, “Intel”, or “MSVC”. This works even if a compiler wrapper like ccache is used；</li>
+<li><code>cmake_minimum_required</code>：设置所需 CMake 的最小版本；</li>
+</ul>
+<h3 id="编译相关变量"><a href="#编译相关变量" class="headerlink" title="编译相关变量!!"></a>编译相关变量!!</h3><ul>
+<li><code>CMAKE_CXX_STANDARD</code>：设置 C++ 标准；</li>
+<li><code>CMAKE_CXX_FLAGS</code>：设置 C++ 编译参数；</li>
+<li><code>CMAKE_C_FLAGS</code>：设置 C 编译参数</li>
+</ul>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -std=c++11 -w&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_FLAGS <span class="string">&quot;$&#123;CMAKE_C_FLAGS&#125; -w&quot;</span>)</span><br></pre></td></tr></table></figure>
 <ul>
-<li><p>指针从本质上讲就是存放变量地址的一个变量，在逻辑上是独立的，它可以被改变，包括其所指向的地址的改变和其指向的地址中所存放的数据的改变。</p>
+<li><code>BUILD_SHARED_LIBS</code> : if this is set to ON, then all libraries are built as shared libraries by default. SET(BUILD_SHARED_LIBS ON) ；</li>
+<li><code>CMAKE_BUILD_TYPE</code> : A variable which controls the type of build when using a single-configuration generator like the Makefile generator. It is case-insensitive；If you are using the Makefile generator, you can create your own build type like this:</li>
+</ul>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CMAKE_BUILD_TYPE distribution)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_FLAGS_DISTRIBUTION <span class="string">&quot;-O3&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_FLAGS_DISTRIBUTION <span class="string">&quot;-O3&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><h3 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/binbinjx/p/5626916.html">https://www.cnblogs.com/binbinjx/p/5626916.html</a></p>
+<h3 id="多源文件"><a href="#多源文件" class="headerlink" title="多源文件"></a>多源文件</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/dyyzlzc/article/details/105189374">https://blog.csdn.net/dyyzlzc/article/details/105189374</a></p>
+<h3 id="一些内容"><a href="#一些内容" class="headerlink" title="一些内容"></a>一些内容</h3><p><a target="_blank" rel="noopener" href="https://elloop.github.io/tools/2016-04-10/learning-cmake-2-commands">https://elloop.github.io/tools/2016-04-10/learning-cmake-2-commands</a></p>
+<p><a target="_blank" rel="noopener" href="https://wangpengcheng.github.io/2019/08/13/learn_cmake/">https://wangpengcheng.github.io/2019/08/13/learn_cmake/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-27-how-to-use-scons/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-27-how-to-use-scons/" class="post-title-link" itemprop="url">how-to-use-scons</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-04-27 15:10:14 / 修改时间：23:38:20" itemprop="dateCreated datePublished" datetime="2021-04-27T15:10:14+08:00">2021-04-27</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>sons 和 makefile 类似，可以编译多种源文件，不过它编译的脚本叫 SConstruct。</p>
+<h3 id="小试一下"><a href="#小试一下" class="headerlink" title="小试一下"></a>小试一下</h3><p>创建一个名为 <code>SConstruct</code> 的文件，按照 <code>python</code> 语法，写入如下内容。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">print(<span class="string">&quot;... Hello, Scons !&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>运行一下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ scons</span><br><span class="line">scons: Reading SConscript files ...</span><br><span class="line">... Hello, Scons !</span><br><span class="line">scons: done reading SConscript files.</span><br><span class="line">scons: Building targets ...</span><br><span class="line">scons: &#96;.&#39; is up to date.</span><br><span class="line">scons: done building targets.</span><br></pre></td></tr></table></figure>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><h3 id="简单编译"><a href="#简单编译" class="headerlink" title="简单编译"></a>简单编译</h3><p>首先写一个简单的 C 文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;Hello, World!&quot;</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后只需要在 SConstruct 中编写</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>这个短小的配置文件给了 SCons 两条信息：</p>
+<ul>
+<li><code>hello.cpp</code>: 你想编译什么（一个可执行程序），你编译的输入文件（hello.cpp）。</li>
+<li><code>Program</code>: 一个编译器方法（builder_method），一个 Python 调用告诉 SCons，你想编译一个可执行程序。Program 编译方法是 SCons 提供的许多编译方法中一个。</li>
+</ul>
+<p>调用 Program 编译方法的的时候，它编译出来的程序名字是和源文件名是一样的。</p>
+<p>从 hello.cpp 源文件编译一个可执行程序的调用将会编译出一个名为 hello 的可执行程序，在 windows 系统里会编译出一个名为 hello.exe 的可执行程序。</p>
+<p>如果想编译出来的程序的名字与源文件名字不一样，只需要在源文件名的左边声明一个目标文件的名字就可以了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;new_hello&#x27;</span>,<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>SConstruct 文件实际上就是一个 Python 脚本。可以在 SConstruct 文件中使用 Python 的 <code>#</code> 注释：</p>
+<p>重要的一点是 SConstruct 文件并不完全像一个正常的 Python 脚本那样工作，其工作方式更像一个 Makefile，那就是在 SConstruct 文件中 SCons 函数被调用的顺序并不影响 SCons 你实际想编译程序和目标文件的顺序。换句话说，当你调用 Program 方法，你并不是告诉 SCons 在调用这个方法的同时马上就编译这个程序，而是告诉 SCons 你想编译这个程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span> <span class="string">&quot;Calling Program(&#x27;hello.c&#x27;)&quot;</span></span><br><span class="line">Program(<span class="string">&#x27;hello.c&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Calling Program(&#x27;goodbye.c&#x27;)&quot;</span></span><br><span class="line">Program(<span class="string">&#x27;goodbye.c&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Finished calling Program()&quot;</span></span><br></pre></td></tr></table></figure>
+<p>并不会顺序执行，因为 scons 是并行执行的这点要特别注意，是不同的线程进行编译的。</p>
+<h3 id="多个源文件"><a href="#多个源文件" class="headerlink" title="多个源文件"></a>多个源文件</h3><p>如果编译的源文件有多个.c 文件。可以这样写:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello_world&#x27;</span>, [<span class="string">&#x27;test.c&#x27;</span>, <span class="string">&#x27;test1.c&#x27;</span>, <span class="string">&#x27;test2.c&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>也可以使用 Glob 函数，定义一个匹配规则来指定源文件列表，比如*,?等标准的 shell 模式。如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(&#39;program&#39;, Glob(&#39;*.cpp&#39;))</span><br></pre></td></tr></table></figure>
+<p>为了更容易处理文件名长列表，SCons 提供了一个 Split 函数，这个 Split 函数可以将一个用引号引起来，并且以空格或其他空白字符分隔开的字符串分割成一个文件名列表，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;program&#x27;</span>, Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src_files=Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>)</span><br><span class="line">Program(<span class="string">&#x27;program&#x27;</span>, src_files)</span><br></pre></td></tr></table></figure>
+<p>SCons 也允许使用 Python 关键字参数来标识输出文件和输入文件。输出文件是 target，输入文件是 source，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src_files=Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>)</span><br><span class="line">Program(target=<span class="string">&#x27;program&#x27;</span>, source=src_files)</span><br></pre></td></tr></table></figure>
+<p>多个程序之间共享源文件是很常见的代码重用方法。一种方式就是利用公共的源文件创建一个库文件，然后其他的程序可以链接这个库文件。另一个更直接，但是不够便利的方式就是在每个程序的源文件列表中包含公共的文件，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">common=[<span class="string">&#x27;common1.cpp&#x27;</span>, <span class="string">&#x27;common2.cpp&#x27;</span>]</span><br><span class="line">foo_files=[<span class="string">&#x27;foo.cpp&#x27;</span>] + common</span><br><span class="line">bar_files=[<span class="string">&#x27;bar1.cpp&#x27;</span>, <span class="string">&#x27;bar2.cpp&#x27;</span>] + common</span><br><span class="line">Program(<span class="string">&#x27;foo&#x27;</span>, foo_files)</span><br><span class="line">Program(<span class="string">&#x27;bar&#x27;</span>, bar_files)</span><br></pre></td></tr></table></figure>
+<h3 id="编译和链接库"><a href="#编译和链接库" class="headerlink" title="编译和链接库"></a>编译和链接库</h3><h4 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h4><p>可以使用 Library 方法来编译库文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(&#39;foo&#39;, [&#39;f1.cpp&#39;, &#39;f2.cpp&#39;, &#39;f3.cpp&#39;])</span><br></pre></td></tr></table></figure>
+<p>除了使用源文件外，Library 也可以使用目标文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.c&#x27;</span>, <span class="string">&#x27;f2.o&#x27;</span>, <span class="string">&#x27;f3.c&#x27;</span>, <span class="string">&#x27;f4.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>甚至可以在文件 List 里混用源文件和目标文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.o&#x27;</span>, <span class="string">&#x27;f3.c&#x27;</span>, <span class="string">&#x27;f4.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>使用 StaticLibrary 显示编译静态库</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StaticLibrary(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h4 id="动态库"><a href="#动态库" class="headerlink" title="动态库"></a>动态库</h4><p>如果想编译动态库（在 POSIX 系统里）或 DLL 文件（Windows 系统），可以使用 SharedLibrary：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SharedLibrary(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h4 id="链接库"><a href="#链接库" class="headerlink" title="链接库"></a>链接库</h4><p>链接库文件的时候，使用$LIBS 变量指定库文件，使用$LIBPATH 指定存放库文件的目录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br><span class="line">Program(<span class="string">&#x27;prog&#x27;</span>, LIBS=[<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>], LIBPATH=<span class="string">&#x27;.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意到，你不需要指定库文件的前缀（比如 lib）或后缀（比如.a 或.lib），SCons 会自动匹配。</p>
+</blockquote>
+<p>默认情况下，链接器只会在系统默认的库目录中寻找库文件。SCons 也会去$LIBPATH 指定的目录中去寻找库文件。$LIBPATH 由一个目录列表组成，如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;prog&#x27;</span>, LIBS=<span class="string">&#x27;m&#x27;</span>, LIBPATH=[<span class="string">&#x27;/usr/lib&#x27;</span>, <span class="string">&#x27;/usr/local/lib&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h3 id="节点对象"><a href="#节点对象" class="headerlink" title="节点对象"></a>节点对象</h3><p>所有编译方法会返回一个节点对象列表，这些节点对象标识了那些将要被编译的目标文件。这些返回出来的节点可以作为参数传递给其他的编译方法。例如，假设我们想编译两个目标文件，这两个目标有不同的编译选项，并且最终组成一个完整的程序。这意味着对每一个目标文件调用 Object 编译方法，如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Object(<span class="string">&#x27;hello.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DHELLO&#x27;</span>)</span><br><span class="line">Object(<span class="string">&#x27;goodbye.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DGOODBYE&#x27;</span>)</span><br><span class="line">Program([<span class="string">&#x27;hello.o&#x27;</span>, <span class="string">&#x27;goodbye.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>这样指定字符串名字的问题就是我们的 SConstruct 文件不再是跨平台的了。因为在 Windows 里，目标文件成为了 hello.obj 和 goodbye.obj。一个更好的解决方案就是将 Object 编译方法返回的目标列表赋值给变量，这些变量然后传递给 Program 编译方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hello_list = Object(<span class="string">&#x27;hello.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DHELLO&#x27;</span>)</span><br><span class="line">goodbye_list = Object(<span class="string">&#x27;goodbye.c&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DGOODBYE&#x27;</span>)</span><br><span class="line">Program(hello_list + goodbye_list)</span><br></pre></td></tr></table></figure>
+<p><strong>显示创建文件和目录节点</strong></p>
+<p>在 SCons 里，表示文件的节点和表示目录的节点是有清晰区分的。SCons 的 File 和 Dir 函数分别返回一个文件和目录节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello_c=File(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br><span class="line">Program(hello_c)</span><br></pre></td></tr></table></figure>
+<p>通常情况下，你不需要直接调用 File 或 Dir，因为调用一个编译方法的时候，SCons 会自动将字符串作为文件或目录的名字，以及将它们转换为节点对象。只有当你需要显示构造节点类型传递给编译方法或其他函数的时候，你才需要手动调用 File 和 Dir 函数。有时候，你需要引用文件系统中一个条目，同时你又不知道它是一个文件或一个目录，你可以调用 Entry 函数，它返回一个节点可以表示一个文件或一个目录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xyzzy=Entry(<span class="string">&#x27;xyzzy&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>将一个节点的文件名当作一个字符串</strong></p>
+<p>如果你不是想打印文件名，而是做一些其他的事情，你可以使用内置的 Python 的 str 函数。例如，你想使用 Python 的 os.path.exists 判断一个文件是否存在：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os.path</span><br><span class="line">program_list=Program(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br><span class="line">program_name=<span class="built_in">str</span>(program_list[<span class="number">0</span>])</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(program_name):</span><br><span class="line">    print(program_name, <span class="string">&quot;does not exist!&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="依赖性"><a href="#依赖性" class="headerlink" title="依赖性"></a>依赖性</h3><h4 id="隐式依赖：-CPPPATH-Construction-变量"><a href="#隐式依赖：-CPPPATH-Construction-变量" class="headerlink" title="隐式依赖：$CPPPATH Construction 变量"></a>隐式依赖：$CPPPATH Construction 变量</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;Hello, &quot;</span> &lt;&lt; <span class="built_in">string</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>并且，hello.h 文件如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> string <span class="meta-string">&quot;world&quot;</span></span></span><br></pre></td></tr></table></figure>
+<p>在这种情况下，我们希望 SCons 能够认识到，如果 hello.h 文件的内容发生改变，那么 hello 程序必须重新编译。我们需要修改 SConstruct 文件如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPPPATH 告诉 SCons 去当前目录(&#x27;.&#x27;) 查看那些被 C 源文件（.c或.h文件）包含的文件。</span></span><br><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>, CPPPATH=<span class="string">&#x27;.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>就像$LIBPATH 变量，$CPPPATH 也可能是一个目录列表，或者一个被系统特定路径分隔符分隔的字符串。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>, CPPPATH=[<span class="string">&#x27;include&#x27;</span>, <span class="string">&#x27;/home/project/inc&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><h4 id="外部环境"><a href="#外部环境" class="headerlink" title="外部环境"></a>外部环境</h4><p>外部环境指的是在用户运行 SCons 的时候，用户环境中的变量的集合。这些变量在 SConscript 文件中通过 Python 的<code>os.environ</code>字典可以获得。你想使用外部环境的 SConscript 文件需要增加一个<code>import os</code>语句。</p>
+<h4 id="构造环境"><a href="#构造环境" class="headerlink" title="构造环境"></a>构造环境</h4><p>一个构造环境是在一个 SConscript 文件中创建的一个唯一的对象，这个对象包含了一些值可以影响 SCons 编译一个目标的时候做什么动作，以及决定从那一个源中编译出目标文件。SCons 一个强大的功能就是可以创建多个构造环境，包括从一个存在的构造环境中克隆一个新的自定义的构造环境。</p>
+<p><strong>创建一个构造环境：Environment 函数</strong></p>
+<p>默认情况下，SCons 基于你系统中工具的一个变量集合来初始化每一个新的构造环境。当你初始化一个构造环境时，你可以设置环境的构造变量来控制一个是如何编译的。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">env=Environment(CC=<span class="string">&#x27;gcc&#x27;</span>, CCFLAGS=<span class="string">&#x27;-O2&#x27;</span>)</span><br><span class="line">env.Program(<span class="string">&#x27;foo.c&#x27;</span>)</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">env=Environment(CXX=<span class="string">&#x27;/usr/local/bin/g++&#x27;</span>, CXXFLAGS=<span class="string">&#x27;-02&#x27;</span>)</span><br><span class="line">env.Program(<span class="string">&#x27;foo.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>从一个构造环境中获取值</strong></p>
+<p>你可以使用访问 Python 字典的方法获取单个的构造变量：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">env=Environment()</span><br><span class="line">print(<span class="string">&quot;CC is:&quot;</span>, env[<span class="string">&#x27;CC&#x27;</span>])</span><br><span class="line">print(<span class="string">&quot;CXX is:&quot;</span>, env[<span class="string">&#x27;CXX&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>一个构造环境实际上是一个拥有方法的对象。如果你想直接访问构造变量的字典，你可以使用 Dictionary 方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">env=Environment(FOO=<span class="string">&#x27;foo&#x27;</span>, BAR=<span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">dict</span>=env.Dictionary()</span><br><span class="line"><span class="keyword">for</span> key <span class="keyword">in</span> [<span class="string">&#x27;OBJSUFFIX&#x27;</span>, <span class="string">&#x27;LIBSUFFIX&#x27;</span>, <span class="string">&#x27;PROGSUFFIX&#x27;</span>]:</span><br><span class="line">    print(<span class="string">&quot;key=%s, value=%s&quot;</span>  %  (key,<span class="built_in">dict</span>[key]))</span><br></pre></td></tr></table></figure>
+<p><strong>默认的构造环境：DefaultEnvironment 函数</strong></p>
+<p>可以控制默认构造环境的设置，使用 DefaultEnvironment 函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DefaultEnvironment(CC=<span class="string">&#x27;/usr/local/bin/gcc&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>这样配置以后，所有 Program 或者 Object 的调用都将使用/usr/local/bin/gcc 编译目标文件。注意到 DefaultEnvironment 返回初始化了的默认构造环境对象，这个对象可以像其他构造环境一样被操作。所以如下的代码和上面的例子是等价的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">env=DefaultEnvironment()</span><br><span class="line">env[<span class="string">&#x27;CC&#x27;</span>]=<span class="string">&#x27;/usr/local/bin/gcc&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><strong>多个构造环境</strong></p>
+<p>构造环境的真正优势是你可以创建你所需要的许多不同的构造环境，每一个构造环境对应了一种不同的方式去编译软件的一部分或其他文件。比如，如果我们需要用-O2 编译一个程序，编译另一个用-g，我们可以如下做：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">opt=Environment(CCFLAGS=<span class="string">&#x27;-O2&#x27;</span>)</span><br><span class="line">dbg=Environment(CCFLAGS=<span class="string">&#x27;-g&#x27;</span>)</span><br><span class="line">opt.Program(<span class="string">&#x27;foo&#x27;</span>,<span class="string">&#x27;foo.cpp&#x27;</span>)</span><br><span class="line">dbg.Program(<span class="string">&#x27;bar&#x27;</span>,<span class="string">&#x27;bar.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/MOU_IT/article/details/95229790">https://blog.csdn.net/MOU_IT/article/details/95229790</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-26-macos-install-systemc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-26-macos-install-systemc/" class="post-title-link" itemprop="url">macos-install-systemc</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-26 17:15:23" itemprop="dateCreated datePublished" datetime="2021-04-26T17:15:23+08:00">2021-04-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-21 01:17:25" itemprop="dateModified" datetime="2021-05-21T01:17:25+08:00">2021-05-21</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>尝试在 mac 安装 systemC，可能因为有安装 gem5 的经历，导致对 mac 完全不是 linux 这件事有了深刻的心理阴影。所以在安装 systemC 的时候潜意识也会觉得有一堆问题甚至到最后发现完全不能安装（为此可能也潜意识放弃了很多尝试解决的办法）。今天意外安装成功了，特此记录一下。</p>
+<h3 id="CXX-环境问题"><a href="#CXX-环境问题" class="headerlink" title="CXX 环境问题"></a>CXX 环境问题</h3><p>其实最关键的原因就是 mac 默认的 C 编译环境是 clang （无论是输入 <code>gcc</code> 还是 <code>clang</code> 结果都是使用 <code>clang</code>，如果要用 <code>brew</code> 安装的 <code>gcc</code>，具体需要用 <code>g++-10</code> 之类的命令）</p>
+<h2 id="安装-systemc"><a href="#安装-systemc" class="headerlink" title="安装 systemc"></a>安装 systemc</h2><h3 id="安装-gcc-环境"><a href="#安装-gcc-环境" class="headerlink" title="安装 gcc 环境"></a>安装 <code>gcc</code> 环境</h3><p>我此时的版本是 <code>gcc version 10.2.0 (Homebrew GCC 10.2.0_4)</code> 但是我觉得应该各个版本都可以</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install gcc</span><br></pre></td></tr></table></figure>
+<p>但是注意这个时候输入 <code>gcc</code> 或者 <code>g++</code> 都还是 <code>clang</code>，要想使用 <code>gcc</code> 应该用 <code>gcc-10</code> 或者 <code>g++-10</code></p>
+<p>然后设置 <code>make</code> 中的 <code>CXX</code> 环境</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export CXX&#x3D;g++-10</span><br></pre></td></tr></table></figure>
+<h3 id="官网下载-systemc-安装包"><a href="#官网下载-systemc-安装包" class="headerlink" title="官网下载 systemc 安装包"></a>官网下载 systemc 安装包</h3><p><a target="_blank" rel="noopener" href="https://www.accellera.org/downloads/standards/systemc">https://www.accellera.org/downloads/standards/systemc</a></p>
+<p>我下载的是 SystemC 2.3.3 (Includes TLM)，其中的 zip 和 tar.gz 都可以。</p>
+<p>然后解压缩到以后都会保存到的位置，比如我个人习惯在</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;Users&#x2F;luolie&#x2F;Documents&#x2F;systemc-2.3.3</span><br></pre></td></tr></table></figure>
+<h3 id="新建配置目录"><a href="#新建配置目录" class="headerlink" title="新建配置目录"></a>新建配置目录</h3><p>进入相关目录下 (systemc-2.3.3)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd systemc-2.3.3</span><br></pre></td></tr></table></figure>
+<p>新建配置临时目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir objdir</span><br><span class="line">cd objdir</span><br></pre></td></tr></table></figure>
+<h3 id="进行相关配置"><a href="#进行相关配置" class="headerlink" title="进行相关配置"></a>进行相关配置</h3><p>主要是配置 <code>../configure [option]</code></p>
+<p>这里的 <code>[option]</code> 建议加</p>
+<ol>
+<li> <code>--with-arch-suffix=</code> : 要不然生成的文件会是 <code>lib-macosx64</code> 这样的，如果加上这个参数，则直接就是 <code>lib</code></li>
+<li> 还可以设置一下以下参数</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">--disable-shared        do not build shared library (libsystemc.so)</span><br><span class="line">--enable-debug          include debugging symbols</span><br><span class="line">--disable-optimize      disable compiler optimization</span><br><span class="line">--disable-async-updates disable request_async_update support</span><br><span class="line">--enable-pthreads       use POSIX threads for SystemC processes</span><br><span class="line">--enable-phase-callbacks</span><br><span class="line">                        enable simulation phase callbacks (experimental)</span><br></pre></td></tr></table></figure>
+<h3 id="make"><a href="#make" class="headerlink" title="make"></a>make</h3><p>然后 <code>make</code> 就好啦，中间会有一些 c 文件的问题，但是不是 error。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">make check // 运行example文件检查一下</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>然后可以 <code>rm -rf objdir</code> 移除临时目录，但个人建议不要，这个可以留着以后 <code>make uninstall</code></p>
+<h3 id="自己测试一下"><a href="#自己测试一下" class="headerlink" title="自己测试一下"></a>自己测试一下</h3><h4 id="编写代码"><a href="#编写代码" class="headerlink" title="编写代码"></a>编写代码</h4><p>随便找个位置（不一定在 systemc 目录）编写如下代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.h</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;systemc.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Hello_world is module name</span></span><br><span class="line">SC_MODULE(hello_world) &#123;</span><br><span class="line">    SC_CTOR(hello_world)&#123;</span><br><span class="line">        <span class="comment">// Nothing in constructor</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//Print &quot;Hello World&quot; to the console.</span></span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;Hello World.\n&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// sc_main in top level function like in C++ main</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sc_main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span>&#123;</span><br><span class="line">  <span class="function">hello_world <span class="title">hello</span><span class="params">(<span class="string">&quot;HELLO&quot;</span>)</span></span>;</span><br><span class="line">  <span class="comment">// Print the hello world</span></span><br><span class="line">  hello.say_hello();</span><br><span class="line">  <span class="keyword">return</span> (<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>特别注意，这里主程序虽然和 C++ 的<code>main</code> 函数的输入参数相同，一般 <code>main</code> 我们会省略这两个参数，但是这里这两个参数不能省略！！！<br>即不能 <code>int sc_mian() &#123;...&#125;</code><br>不然会报错</p>
+</blockquote>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><ol>
+<li>首先添加一个 <code>bash</code> 的全局环境变量<code>$SYSTEMC_HOME</code>（这里用 <code>export</code> 但实际使用建议写入 bash）</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># export SYSTEMC_HOME=path/to/systemc-2.3.3</span></span><br><span class="line"><span class="comment"># eg.</span></span><br><span class="line"><span class="built_in">export</span> SYSTEMC_HOME=/Users/conflux/Downloads/systemc-2.3.3</span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$SYSTEMC_HOME</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>编译（后面可以为此做一个 make 或者 scons）</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++-10 hello.cpp -o hello.o -L <span class="variable">$SYSTEMC_HOME</span>/lib -I <span class="variable">$SYSTEMC_HOME</span>/include -l systemc</span><br></pre></td></tr></table></figure>
+<p>这里逐个参数讲解一下</p>
+<ul>
+<li><code>g++-10</code>: 使用 <code>g++</code> version10 作为编译器</li>
+<li><code>hello.cpp</code>: 编译的主文件</li>
+<li><code>-o hello.o</code>: 输出文件名</li>
+<li><code>-L $SYSTEMC_HOME/lib</code>: 第一个寻找的库文件目录</li>
+<li><code>-I $SYSTEMC_HOME/include</code>: 第一个寻找的头文件目录</li>
+<li><code>-l systemc</code>: 在上面库文件寻找名叫 <code>libsystemc.a</code> 的动态库文件</li>
+</ul>
+<ol start="3">
+<li>运行一下</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./hello.o</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">        SystemC 2.3.3-Accellera --- Apr 26 2021 16:46:59</span><br><span class="line">        Copyright (c) 1996-2018 by all Contributors,</span><br><span class="line">        ALL RIGHTS RESERVED</span><br><span class="line">Hello World.</span><br></pre></td></tr></table></figure>
+<p>耶！</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a target="_blank" rel="noopener" href="https://github.com/accellera-official/systemc/blob/master/INSTALL.md">https://github.com/accellera-official/systemc/blob/master/INSTALL.md</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/25961573/how-to-use-and-install-systemc-in-terminal-mac-os-x">https://stackoverflow.com/questions/25961573/how-to-use-and-install-systemc-in-terminal-mac-os-x</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-22-linux-install-gem5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-22-linux-install-gem5/" class="post-title-link" itemprop="url">linux 安装 gem5</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-22 13:53:15" itemprop="dateCreated datePublished" datetime="2021-04-22T13:53:15+08:00">2021-04-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-27 23:38:20" itemprop="dateModified" datetime="2021-04-27T23:38:20+08:00">2021-04-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>官方文档 <a target="_blank" rel="noopener" href="https://www.gem5.org/documentation/learning_gem5/part1/building/">https://www.gem5.org/documentation/learning_gem5/part1/building/</a></p>
+<p>ubuntu18.05 版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python-dev python</span><br></pre></td></tr></table></figure>
+<p>最后 编译</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scons build&#x2F;X86&#x2F;gem5.opt -j &lt;NUMBER OF CPUs ON YOUR PLATFORM&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="出现的错误："><a href="#出现的错误：" class="headerlink" title="出现的错误："></a>出现的错误：</h3><ol>
+<li>权限问题</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;tmp&#x2F;tmpi2synp81: 1: util&#x2F;cpt_upgrader.py: Permission denied</span><br><span class="line">scons: *** [build&#x2F;X86&#x2F;sim&#x2F;tags.cc] Error 126</span><br><span class="line">scons: building terminated because of errors.</span><br></pre></td></tr></table></figure>
+<p>解决: 给该文件权限 777</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod 777 .&#x2F;util&#x2F;cpt_upgrader.py</span><br></pre></td></tr></table></figure>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a target="_blank" rel="noopener" href="https://yuchen112358.github.io/2016/03/21/gem5-install/">https://yuchen112358.github.io/2016/03/21/gem5-install/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-16-huawei-oppo-ZTE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-16-huawei-oppo-ZTE/" class="post-title-link" itemprop="url">华为-oppo-中兴</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-16 17:38:39" itemprop="dateCreated datePublished" datetime="2021-04-16T17:38:39+08:00">2021-04-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-06-01 13:32:11" itemprop="dateModified" datetime="2021-06-01T13:32:11+08:00">2021-06-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>其实之前（2004 年）华为和中兴基本是半分天下的，两个公司体量差不多。<br>但是华为企业文化比较“狼”，决定做手机就投入一切去做，而中兴则相对保守，毕竟自己是做交换机起家的，还是会担心转型失败的代价。</p>
+<p>这也和两个企业本身的企业结构有关，中兴是上市企业，那个时候还是很担心企业的股市影响。而且中兴主要是国资委控股，四舍五入算是半个国企。<br>这也使得企业固然相对笨重，主要还是靠国家给的单子（三大通信企业一年 500 亿订单）。这样企业不会太腾飞。但是也能长久的养老。</p>
+<p>可能也正是看见了中兴上市之后的笨手笨脚，华为才能做出永不上市的决定（截止至 2020 年，华为的营收是中兴的 8 倍）。</p>
+<p>而华为激进的狼性，至少在手机的战场上是打赢了的。</p>
+<p>不得不承认华为到现在 2020 年的国民品牌，一个是靠着华为的运营。另一个也是华为开始做和民众相关的项目，手机。</p>
+<p>而华为也享受着大体量带来的优势，决定投入智能手机行业，接着就是自主研发芯片。而 麒麟 芯片的问世和一代代迭代。让华为手机逐渐走上人们的视野。</p>
+<p>而中兴的努比亚，还在襁褓当中（因为企业的特性，和政府关系很好，彭丽媛就用的努比亚）（中兴在深圳市的地产话语权也很大，这也是权力的一部分，虽然就价值来说中兴确实没有那么盈利）</p>
+<p>但是贸易战开打之后，华为很难长时间继续做手机，目前华为的下一个目光投入的是汽车。但是具体汽车什么时候能成型，还有待商榷。</p>
+<p>14 年中兴的蓝剑计划还能给人才公寓。</p>
+<p>在 04 年的时候，整个深圳还是华为中兴的时代。中兴大楼在深圳最好的位置，当时的腾讯还是小弟弟。但是现在深圳最高的楼已经是腾讯大楼了。</p>
+<p>–</p>
+<p>oppo 是一个很有南方小企业家特质的公司，格局不大但是非常能赚钱。</p>
+<p>这个公司只做利润率高的产品。这也是这个企业一直以来的商业法宝，本分（to do list &amp; not to do list）的企业文化。</p>
+<p>而足够赚钱的企业，也不需要上市来吸引现金流。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-09-huawei-oppo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-09-huawei-oppo/" class="post-title-link" itemprop="url">huawei-oppo</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-09 09:57:47" itemprop="dateCreated datePublished" datetime="2021-04-09T09:57:47+08:00">2021-04-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-27 23:38:20" itemprop="dateModified" datetime="2021-04-27T23:38:20+08:00">2021-04-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>找工作时遇到了两个差不多，或者都还可以的选择，一个是华为，一个是 OPPO</p>
+<p>华为在北京 OPPO 在上海</p>
+<h2 id="公司"><a href="#公司" class="headerlink" title="公司"></a>公司</h2><p>华为是一个体量大，业务多的公司，但是可能较长时间不会涉及手机业务了，接下来涉及的还有车用、家用产品的生态。之前我也是不太想去华为的，因为觉得整个公司的企业文化都传播的很恐怖，加班严重还不给加班工资。但是现在自己实际感受起来好像也没有那么严重，而且加班文化确实是分部门的，我能去的这个部门现在看来也是没有这些问题的。</p>
+<p>OPPO 的芯片部门是个初创公司，虽然我之前是不太想去初创公司，但是现在动摇了，思考了一下动摇原因，因为觉得别的小初创公司一个是业务能力不行，一个是业务范围比较窄，还有就是从概率角度这些公司都很难成长起来。但是 OPPO 恰巧这三点都不符合。</p>
+<h2 id="城市"><a href="#城市" class="headerlink" title="城市"></a>城市</h2><p>北京这个城市现在想来也很符合想象中的样子了。整个城市结构规矩方正，这里的人和事物也都规很具传统的东方色彩，规矩保守官僚。城市干燥，每天洗澡会身上痒，抹身体乳护肤乳之后倒是还好，就是会有点麻烦。另外晾衣服很快就能干这点我真的是太爱了，而且城市很少下雨，我确实也不太喜欢总是湿漉漉的城市。坏处就是只有两季，虽然不下雨，但是冬天夏天在外面玩都挺痛苦的。</p>
+<p>上海虽然只有去旅游的经历（还有和同学聊天或者网上查询得来的二手经历），但是总体感受是更像我的家一样，城市结构错综复杂（看地铁图就知道），不是很好认路，但是在南方小城生活过的人应该都觉得这也不是太大的问题。上海是中国接受新文化的第一站，里面的人充满了现代思想，自由精致自私。城市沿海，整天湿漉漉的，屋子里容易发霉，所以如果在上海以后一定要买抽湿机，但是潮湿的环境，鼻子和皮肤都比较舒服，相对气候也比较温润，不会有比较极端的温度（但是下雨出去玩也挺不方便）。</p>
+<h2 id="发展"><a href="#发展" class="headerlink" title="发展"></a>发展</h2><p>单说个人能力成长很难定义，在华为必然会有更好的培训和更多的项目接触。但是在我读了这么多年书之后，确实也觉得过多的项目未必能给自身带来成长。</p>
+<p>想到了江源师兄给我说过的，很多时候有些人我们觉得很厉害，并非是因为他做了很好的项目（大多数人也遇不见很好的项目），而是因为他们在自己的时间里能做些什么，这些往往才能他们成长的很出色。</p>
+<p>我现在不能很确定自己是不是内驱力很强的人。在 OPPO 有更多的时间空间的自由环境就像一把双刃剑，可能能给我沉淀的时间让我更多的思考成长甚至未来自己的创业，当然也可能成为让我颓废和偷懒的温床，很容易荒废掉一些时间。而在华为真的是能逼着做一些公司指定了方向的成长，可能会有很多时间在做小意义低成长的事情，但是能让我更多的忙起来，至少能持续处于工作的状态。</p>
+<h2 id="薪酬"><a href="#薪酬" class="headerlink" title="薪酬"></a>薪酬</h2><p>在此之前我会觉得可能更多会借助来回跳槽来让自己工资成长，但是现在看来未必是这样，说实话现在的薪酬已经算是基本工资中比较高的了，再成长的收益也不大（因为会更多的用于缴税），以后薪酬的成长来源于股票分红的话，那么还是依赖于在一个公司长期工作下去。</p>
+<p>两家长期来看都挺好的，在华为工作 10 年以上的人基本上所有人都过的很不错，不过我不知道这是不是因为过去的 10 年恰好是中国信息产业狂增的浪潮导致的，我也不知道这样的动力对于华为能否再坚持下一个 10 年。OPPO 刚好是一个新的初创机会，我如果能在里面做 10 年，也算是元老级员工，那么可能能遇见像是华为上个 10 年一样的成长。（当然也可能会最后做不出很有竞争力的产品，虽然我觉得这个概率不高）</p>
+<h2 id="人生意义"><a href="#人生意义" class="headerlink" title="人生意义"></a>人生意义</h2><p>我觉得华为还是确实在做一些，很有大公司风范的事情的，虽然里面的个人都是一块垫脚石，但是项目最后都是有很大格局考量的项目，参与其中也确实会给精神带给较大的满足。</p>
+<p>OPPO 上下都离不开一句话：“OPPO 不缺钱”，这个公司确实还是很有钱的。以后肯定也会贯穿于我自己，主要是“钱”确实是个人生活的核心，能让我更多的专注于自己的生活，而工作不过是赚钱的工具，精神满足需要更多来源于生活的方方面面。</p>
+<h2 id="城市经济"><a href="#城市经济" class="headerlink" title="城市经济"></a>城市经济</h2><p>城市的未来我是真的看不透，我不知道中国会不会和美国有相同的发展，上海和北京会未来变成纽约和华盛顿么，如果是的话上海肯定更好，但是不同国家还是很不一样的，北京确实在降低经济职能，但是现在北京的经济已经很稳定了，不可能选择直接倒逼经济（也很难实现）。</p>
+<p>那么北京会成为纽约而让上海成为西雅图么？我不知道，感觉大概率会有中国自己特色的、和美国完全不一样的城市组成结构。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-07-GPU-about/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021-04-07-GPU-about/" class="post-title-link" itemprop="url">GPU 架构</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-07 09:22:33" itemprop="dateCreated datePublished" datetime="2021-04-07T09:22:33+08:00">2021-04-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-27 23:38:20" itemprop="dateModified" datetime="2021-04-27T23:38:20+08:00">2021-04-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>GPU 是显卡（Video card、Display card、Graphics card）最核心的部件。<br>但除了 GPU，显卡还有扇热器、通讯元件、与主板和显示器连接的各类插槽。</p>
+<h2 id="History"><a href="#History" class="headerlink" title="History"></a>History</h2><p>GPU 自从上世纪 90 年代出现雏形以来，经过 20 多年的发展，已经发展成不仅仅是渲染图形这么简单，<br>还包含了数学计算、物理模拟、AI 运算等功能。(主要是因为对于数据密集任务的高效处理能力)</p>
+<h3 id="NV-GPU-架构发展"><a href="#NV-GPU-架构发展" class="headerlink" title="NV GPU 架构发展"></a>NV GPU 架构发展</h3><p>众所周知，CPU 的发展符合摩尔定律：每 18 个月速度翻倍。</p>
+<p>NVIDIA 创始人黄仁勋在很多年前曾信誓旦旦地说，GPU 的速度和功能要超越摩尔定律，每 6 个月就翻一倍。<br>NV 的 GPU 发展史证明，他确实做到了！GPU 的提速幅率远超 CPU。</p>
+<p>NVIDIA GPU 架构历经多次变革，从起初的 Tesla 发展到最新的 Turing 架构，发展史可分为以下时间节点：</p>
+<ul>
+<li><p>2008 - Tesla</p>
+<p>Tesla 最初是给计算处理单元使用的，应用于早期的 CUDA 系列显卡芯片中，并不是真正意义上的普通图形处理芯片。</p>
 </li>
-<li><p>引用是一个别名，它在逻辑上不是独立的，它的存在具有依附性，所以引用必须在一开始就被初始化，而且其引用的对象在其整个生命周期中是不能被改变的（自始至终只能依附于同一个变量）。</p>
+<li><p>2010 - Fermi</p>
+<p>Fermi 是第一个完整的 GPU 计算架构。首款可支持与共享存储结合纯 cache 层次的 GPU 架构，支持 ECC 的 GPU 架构。</p>
+</li>
+<li><p>2012 - Kepler</p>
+<p>Kepler 相较于 Fermi 更快，效率更高，性能更好。</p>
+</li>
+<li><p>2014 - Maxwell</p>
+<p>其全新的立体像素全局光照 (VXGI) 技术首次让游戏 GPU 能够提供实时的动态全局光照效果。基于 Maxwell 架构的 GTX 980 和 970 GPU 采用了包括多帧采样抗锯齿 (MFAA)、动态超级分辨率 (DSR)、VR Direct 以及超节能设计在内的一系列新技术。</p>
+</li>
+<li><p>2016 - Pascal</p>
+<p>Pascal 架构将处理器和数据集成在同一个程序包内，以实现更高的计算效率。1080 系列、1060 系列基于 Pascal 架构</p>
+</li>
+<li><p>2017 - Volta</p>
+<p>Volta 配备 640 个 Tensor 核心，每秒可提供超过 100 兆次浮点运算(TFLOPS) 的深度学习效能，比前一代的 Pascal 架构快 5 倍以上。</p>
+</li>
+<li><p>2018 - Turing</p>
+<p>Turing 架构配备了名为 RT Core 的专用光线追踪处理器，能够以高达每秒 10 Giga Rays 的速度对光线和声音在 3D 环境中的传播进行加速计算。Turing 架构将实时光线追踪运算加速至上一代 NVIDIA Pascal™ 架构的 25 倍，并能以高出 CPU 30 多倍的速度进行电影效果的最终帧渲染。2060 系列、2080 系列显卡也是跳过了 Volta 直接选择了 Turing 架构。</p>
 </li>
 </ul>
-<h2 id="参考文献："><a href="#参考文献：" class="headerlink" title="参考文献："></a>参考文献：</h2><p><a target="_blank" rel="noopener" href="http://bbs.csdn.net/topics/80358667">http://bbs.csdn.net/topics/80358667</a><br><a target="_blank" rel="noopener" href="http://www.guokr.com/post/443914/">http://www.guokr.com/post/443914/</a><br><a target="_blank" rel="noopener" href="http://blog.csdn.net/listening_music/article/details/6921608">http://blog.csdn.net/listening_music/article/details/6921608</a><br><a target="_blank" rel="noopener" href="http://www.tc5u.com/cpp/2400451.htm">http://www.tc5u.com/cpp/2400451.htm</a></p>
+<h3 id="GPU-功能"><a href="#GPU-功能" class="headerlink" title="GPU 功能"></a>GPU 功能</h3><p>现代 GPU 除了绘制图形外，还担当了很多额外的功能，综合起来如下几方面：</p>
+<ul>
+<li><p>图形绘制。</p>
+<p>这是 GPU 最传统的拿手好戏，也是最基础、最核心的功能。为大多数 PC 桌面、移动设备、图形工作站提供图形处理和绘制功能。</p>
+</li>
+<li><p>物理模拟。</p>
+<p>GPU 硬件集成的物理引擎（PhysX、Havok），为游戏、电影、教育、科学模拟等领域提供了成百上千倍性能的物理模拟，使得以前需要长时间计算的物理模拟得以实时呈现。</p>
+</li>
+<li><p>海量计算。</p>
+<p>计算着色器及流输出的出现，为各种可以并行计算的海量需求得以实现，CUDA 就是最好的例证。</p>
+</li>
+<li><p>AI 运算。</p>
+<p>近年来，人工智能的崛起推动了 GPU 集成了 AI Core 运算单元，反哺 AI 运算能力的提升，给各行各业带来了计算能力的提升。</p>
+</li>
+<li><p>其它计算。</p>
+<p>音视频编解码、加解密、科学计算、离线渲染等等都离不开现代 GPU 的并行计算能力和海量吞吐能力。</p>
+</li>
+</ul>
+<h2 id="物理架构"><a href="#物理架构" class="headerlink" title="物理架构"></a>物理架构</h2><p>由于纳米工艺的引入，GPU 可以将数以亿记的晶体管和电子器件集成在一个小小的芯片内。从宏观物理结构上看，现代大多数桌面级 GPU 的大小跟数枚硬币同等大小，部分甚至比一枚硬币还小（下图）。</p>
+<p><img src="/source/images/GPU/GPU-size.jpg" alt="GPU-size"></p>
+<p>当 GPU 结合散热风扇、PCI 插槽、HDMI 接口等部件之后，就组成了显卡。</p>
+<p>显卡不能独立工作，需要装载在主板上，结合 CPU、内存、显存、显示器等硬件设备，组成完整的 PC 机。</p>
+<p>GPU 的微观结构因不同厂商、不同架构都会有所差异，但核心部件、概念、以及运行机制大同小异。下面将展示部分架构的 GPU 微观物理结构。</p>
+<h3 id="NV-Tesla"><a href="#NV-Tesla" class="headerlink" title="NV Tesla"></a>NV Tesla</h3><p><img src="/source/images/GPU/NV-Tesla.png" alt="Tesla"></p>
+<p>Tesla 微观架构总览图如上。下面将阐述它的特性和概念：</p>
+<ul>
+<li>拥有 7 组 TPC（Texture/Processor Cluster，纹理处理簇）</li>
+<li>每个 TPC 有两组 SM（Stream Multiprocessor，流多处理器）每个 SM 包含：<ul>
+<li>6 个 SP（Streaming Processor，流处理器）</li>
+<li>2 个 SFU（Special Function Unit，特殊函数单元）</li>
+<li>L1 缓存、MT Issue（多线程指令获取）、C-Cache（常量缓存）、共享内存</li>
+</ul>
+</li>
+<li>除了 TPC 核心单元，还有与显存、CPU、系统内存交互的各种部件。</li>
+</ul>
+<h3 id="NV-Fermi"><a href="#NV-Fermi" class="headerlink" title="NV Fermi"></a>NV Fermi</h3><p><img src="/source/images/GPU/NV-Fermi.png" alt="NV-Fermi"></p>
+<p>拥有 16 个 SM</p>
+<ul>
+<li>每个 SM：<ul>
+<li>2 个 Warp（线程束）</li>
+<li>两组共 32 个 Core</li>
+<li>16 组加载存储单元（LD/ST）</li>
+<li>4 个特殊函数单元（SFU）</li>
+</ul>
+</li>
+<li>每个 Warp：<ul>
+<li>16 个 Core</li>
+<li>Warp 编排器（Warp Scheduler）</li>
+<li>分发单元（Dispatch Unit）</li>
+</ul>
+</li>
+<li>每个 Core：<ul>
+<li>1 个 FPU（浮点数单元）</li>
+<li>1 个 ALU（逻辑运算单元）</li>
+</ul>
+</li>
+</ul>
+<h3 id="NV-Maxwell"><a href="#NV-Maxwell" class="headerlink" title="NV Maxwell"></a>NV Maxwell</h3><p><img src="/source/images/GPU/NV-Maxwell.png" alt="NV-maxwell"></p>
+<p>采用了 Maxwell 的 GM204，拥有 4 个 GPC，每个 GPC 有 4 个 SM，对比 Tesla 架构来说，在处理单元上有了很大的提升</p>
+<h2 id="NV-Kepler"><a href="#NV-Kepler" class="headerlink" title="NV Kepler"></a>NV Kepler</h2><p><img src="/source/images/GPU/NV-Kepler.png" alt="NV-Kepler"></p>
+<p>Kepler 除了在硬件有了提升，有了更多处理单元之外，还将 SM 升级到了 SMX。SMX 是改进的架构，支持动态创建渲染线程（下图），以降低延迟。</p>
+<p><img src="/source/images/GPU/NV-Kerpler-Threads.png" alt="NV-Kerpler-Threads"></p>
+<h2 id="NV-Turing"><a href="#NV-Turing" class="headerlink" title="NV Turing"></a>NV Turing</h2><p><img src="/source/images/GPU/NV-Turing.png" alt="NV-Turing"></p>
+<p>上图是采纳了 Turing 架构的 TU102 GPU，它的特点如下：</p>
+<ul>
+<li>6 GPC（图形处理簇）</li>
+<li>36 TPC（纹理处理簇）</li>
+<li>72 SM（流多处理器）</li>
+<li>每个 GPC 有 6 个 TPC，每个 TPC 有 2 个 SM</li>
+<li>4,608 CUDA 核</li>
+<li>72 RT 核</li>
+<li>576 Tensor 核</li>
+<li>288 纹理单元</li>
+<li>12x32 位 GDDR6 内存控制器 (共 384 位)</li>
+</ul>
+<p>单个 SM 的结构图如下：</p>
+<p><img src="/source/images/GPU/NV-Turing-SM.png" alt="NV-Turing-SM"></p>
+<p>每个 SM 包含：</p>
+<ul>
+<li>64 CUDA 核</li>
+<li>8 Tensor 核</li>
+<li>256 KB 寄存器文件</li>
+</ul>
+<p>TU102 GPU 芯片实物图：</p>
+<p><img src="/source/images/GPU/NV-Turing-physical.png" alt="NV-Turing-physical"></p>
+<h3 id="GPU-架构共性"><a href="#GPU-架构共性" class="headerlink" title="GPU 架构共性"></a>GPU 架构共性</h3><p>纵观上一节的所有 GPU 架构，可以发现它们虽然有所差异，但存在着很多相同的概念和部件：</p>
+<ul>
+<li>GPC</li>
+<li>TPC</li>
+<li>Thread</li>
+<li>SM、SMX、SMM</li>
+<li>Warp</li>
+<li>SP</li>
+<li>Core</li>
+<li>ALU</li>
+<li>FPU</li>
+<li>SFU</li>
+<li>ROP</li>
+<li>Load/Store Unit</li>
+<li>L1 Cache</li>
+<li>L2 Cache</li>
+<li>Memory</li>
+<li>Register File</li>
+</ul>
+<p>以上各个部件的用途将在下一章详细阐述。</p>
+<p>GPU 为什么会有这么多层级且有这么多雷同的部件？答案是 GPU 的任务是天然并行的，现代 GPU 的架构皆是以高度并行能力而设计的。</p>
+<h2 id="GPU-运行机制"><a href="#GPU-运行机制" class="headerlink" title="GPU 运行机制"></a>GPU 运行机制</h2><h3 id="渲染总览"><a href="#渲染总览" class="headerlink" title="渲染总览"></a>渲染总览</h3><p>由上一章可得知，现代 GPU 有着相似的结构，有很多相同的部件，在运行机制上，也有很多共同点。下面是 Fermi 架构的运行机制总览图：</p>
+<p><img src="/source/images/GPU/Fermi-run.png" alt="Fermi-run"></p>
+<p>从 Fermi 开始 NVIDIA 使用类似的原理架构，使用一个 Giga Thread Engine 来管理所有正在进行的工作，GPU 被划分成多个 GPCs (Graphics Processing Cluster)，每个 GPC 拥有多个 SM（SMX、SMM）和一个光栅化引擎 (Raster Engine)，它们其中有很多的连接，最显著的是 Crossbar，它可以连接 GPCs 和其它功能性模块（例如 ROP 或其他子系统）。</p>
+<p>程序员编写的 shader 是在 SM 上完成的。每个 SM 包含许多为线程执行数学运算的 Core （核心）。例如，一个线程可以是顶点或像素着色器调用。这些 Core 和其它单元由 Warp Scheduler 驱动，Warp Scheduler 管理一组 32 个线程作为 Warp （线程束）并将要执行的指令移交给 Dispatch Units。</p>
+<p>GPU 中实际有多少这些单元（每个 GPC 有多少个 SM，多少个 GPC …）取决于芯片配置本身。例如，GM204 有 4 个 GPC，每个 GPC 有 4 个 SM，但 Tegra X1 有 1 个 GPC 和 2 个 SM，它们均采用 Maxwell 设计。 SM 设计本身（内核数量，指令单位，调度程序 …）也随着时间的推移而发生变化，并帮助使芯片变得如此高效，可以从高端台式机扩展到笔记本电脑移动。</p>
+<p><img src="/source/images/GPU/Fermi-SM.png" alt="Fermi-SM"></p>
+<p>如上图，对于某些 GPU（如 Fermi 部分型号）的单个 SM，包含：</p>
+<ul>
+<li>32 个运算核心 （Core，也叫流处理器 Stream Processor）</li>
+<li>16 个 LD/ST（load/store）模块来加载和存储数据</li>
+<li>4 个 SFU（Special function units）执行特殊数学运算（sin、cos、log 等）</li>
+<li>128KB 寄存器（Register File）</li>
+<li>64KB L1 缓存</li>
+<li>全局内存缓存（Uniform Cache）</li>
+<li>纹理读取单元</li>
+<li>纹理缓存（Texture Cache）</li>
+<li>PolyMorph Engine：多边形引擎负责属性装配（attribute Setup）、顶点拉取(VertexFetch)、曲面细分、栅格化（这个模块可以理解专门处理顶点相关的东西）。</li>
+<li>2 个 Warp Schedulers：这个模块负责 warp 调度，一个 warp 由 32 个线程组成，warp 调度器的指令通过 Dispatch Units 送到 Core 执行。</li>
+<li>指令缓存（Instruction Cache）</li>
+<li>内部链接网络（Interconnect Network）</li>
+</ul>
+<h3 id="GPU-运行逻辑"><a href="#GPU-运行逻辑" class="headerlink" title="GPU 运行逻辑"></a>GPU 运行逻辑</h3><p>了解上一节的部件和概念之后，可以深入阐述 GPU 的渲染过程和步骤。下面将以 Fermi 家族的 SM 为例，进行逻辑管线的详细说明。</p>
+<p><img src="/source/images/GPU/Fermi-logic.png" alt="Fermi-logic"></p>
+<ol>
+<li><p>程序通过图形 API(DX、GL、WEBGL)发出 drawcall 指令，指令会被推送到驱动程序，驱动会检查指令的合法性，然后会把指令放到 GPU 可以读取的 Pushbuffer 中。</p>
+</li>
+<li><p>经过一段时间或者显式调用 flush 指令后，驱动程序把 Pushbuffer 的内容发送给 GPU，GPU 通过主机接口（Host Interface）接受这些命令，并通过前端（Front End）处理这些命令。</p>
+</li>
+<li><p>在图元分配器(Primitive Distributor)中开始工作分配，处理 indexbuffer 中的顶点产生三角形分成批次(batches)，然后发送给多个 PGCs。这一步的理解就是提交上来 n 个三角形，分配给这几个 PGC 同时处理。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/Fermi-SM-run.png" alt="Fermi-SM-run"></p>
+<ol start="4">
+<li><p>在 GPC 中，每个 SM 中的 Poly Morph Engine 负责通过三角形索引(triangle indices)取出三角形的数据(vertex data)，即图中的 Vertex Fetch 模块。</p>
+</li>
+<li><p>在获取数据之后，在 SM 中以 32 个线程为一组的线程束(Warp)来调度，来开始处理顶点数据。Warp 是典型的单指令多线程（SIMT，SIMD 单指令多数据的升级）的实现，也就是 32 个线程同时执行的指令是一模一样的，只是线程数据不一样，这样的好处就是一个 warp 只需要一个套逻辑对指令进行解码和执行就可以了，芯片可以做的更小更快，之所以可以这么做是由于 GPU 需要处理的任务是天然并行的。</p>
+</li>
+<li><p>SM 的 warp 调度器会按照顺序分发指令给整个 warp，单个 warp 中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是 if(true)的分支，但是当前线程的数据的条件是 false，或者循环的次数不一样（比如 for 循环次数 n 不是常量，或被 break 提前终止了但是别的还在走），因此在 shader 中的分支会显著增加时间消耗，在一个 warp 中的分支除非 32 个线程都走到 if 或者 else 里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以 warp 为单位，而这些 warp 之间才是独立的。</p>
+</li>
+<li><p>warp 中的指令可以被一次完成，也可能经过多次调度，例如通常 SM 中的 LD/ST(加载存取)单元数量明显少于基础数学操作单元。</p>
+</li>
+<li><p>由于某些指令比其他指令需要更长的时间才能完成，特别是内存加载，warp 调度器可能会简单地切换到另一个没有内存等待的 warp，这是 GPU 如何克服内存读取延迟的关键，只是简单地切换活动线程组。为了使这种切换非常快，调度器管理的所有 warp 在寄存器文件中都有自己的寄存器。这里就会有个矛盾产生，shader 需要越多的寄存器，就会给 warp 留下越少的空间，就会产生越少的 warp，这时候在碰到内存延迟的时候就会只是等待，而没有可以运行的 warp 可以切换。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-store.png" alt="GPU-store"></p>
+<ol start="9">
+<li>一旦 warp 完成了 vertex-shader 的所有指令，运算结果会被 Viewport Transform 模块处理，三角形会被裁剪然后准备栅格化，GPU 会使用 L1 和 L2 缓存来进行 vertex-shader 和 pixel-shader 的数据通信。</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-triangle.png" alt="GPU-triangle"></p>
+<ol start="10">
+<li>接下来这些三角形将被分割，再分配给多个 GPC，三角形的范围决定着它将被分配到哪个光栅引擎(raster engines)，每个 raster engines 覆盖了多个屏幕上的 tile，这等于把三角形的渲染分配到多个 tile 上面。也就是像素阶段就把按三角形划分变成了按显示的像素划分了。</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-distribution-crossbar.png" alt="GPU-distribution-crossbar"></p>
+<ol start="11">
+<li><p>SM 上的 Attribute Setup 保证了从 vertex-shader 来的数据经过插值后是 pixel-shade 是可读的。</p>
+</li>
+<li><p>GPC 上的光栅引擎(raster engines)在它接收到的三角形上工作，来负责这些这些三角形的像素信息的生成（同时会处理裁剪 Clipping、背面剔除和 Early-Z 剔除）。</p>
+</li>
+<li><p>32 个像素线程将被分成一组，或者说 8 个 2x2 的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM 中的 warp 调度器会管理像素着色器的任务。</p>
+</li>
+<li><p>接下来的阶段就和 vertex-shader 中的逻辑步骤完全一样，但是变成了在像素着色器线程中执行。由于不耗费任何性能可以获取一个像素内的值，导致锁步执行非常便利，所有的线程可以保证所有的指令可以在同一点。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-ROP.png" alt="GPU-ROP"></p>
+<ol>
+<li> 最后一步，现在像素着色器已经完成了颜色的计算还有深度值的计算，在这个点上，我们必须考虑三角形的原始 api 顺序，然后才将数据移交给 ROP(render output unit，渲染输入单元)，一个 ROP 内部有很多 ROP 单元，在 ROP 单元中处理深度测试，和 framebuffer 的混合，深度和颜色的设置必须是原子操作，否则两个不同的三角形在同一个像素点就会有冲突和错误。</li>
+</ol>
+<h3 id="GPU-技术要点"><a href="#GPU-技术要点" class="headerlink" title="GPU 技术要点"></a>GPU 技术要点</h3><h4 id="SIMD-amp-SIMT"><a href="#SIMD-amp-SIMT" class="headerlink" title="SIMD &amp; SIMT"></a>SIMD &amp; SIMT</h4><p><strong>SIMD</strong>（Single Instruction Multiple Data）是单指令多数据，在 GPU 的 ALU 单元内，一条指令可以处理多维向量（一般是 4D）的数据。比如，有以下 shader 指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float4 c = a + b; <span class="comment">// a, b都是float4类型</span></span><br></pre></td></tr></table></figure>
+<p>对于没有 SIMD 的处理单元，需要 4 条指令将 4 个 float 数值相加，汇编伪代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ADD c.x, a.x, b.x</span><br><span class="line">ADD c.y, a.y, b.y</span><br><span class="line">ADD c.z, a.z, b.z</span><br><span class="line">ADD c.w, a.w, b.w</span><br></pre></td></tr></table></figure>
+<p>但有了 SIMD 技术，只需一条指令即可处理完：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SIMD_ADD c, a, b</span><br></pre></td></tr></table></figure>
+<p><img src="/source/images/GPU/SIMD.png"></p>
+<p><strong>SIMT</strong>（Single Instruction Multiple Threads，单指令多线程）是 SIMD 的升级版，可对 GPU 中单个 SM 中的多个 Core 同时处理同一指令，并且每个 Core 存取的数据可以是不同的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SIMT_ADD c, a, b</span><br></pre></td></tr></table></figure>
+<p>上述指令会被同时送入在单个 SM 中被编组的所有 Core 中，同时执行运算，但<code>a</code>、<code>b</code> 、<code>c</code>的值可以不一样：</p>
+<blockquote>
+<p>这里应该指的是可以是不同类型</p>
+</blockquote>
+<p><img src="/source/images/GPU/SIMT.png"></p>
+<h4 id="co-issue"><a href="#co-issue" class="headerlink" title="co-issue"></a>co-issue</h4><p><strong>co-issue</strong>是为了解决 SIMD 运算单元无法充分利用的问题。例如下图，由于 float 数量的不同，ALU 利用率从 100%依次下降为 75%、50%、25%。</p>
+<p><img src="/source/images/GPU/coissue-problem.png"></p>
+<p>为了解决着色器在低维向量的利用率低的问题，可以通过合并 1D 与 3D 或 2D 与 2D 的指令。例如下图，<code>DP3</code>指令用了 3D 数据，<code>ADD</code>指令只有 1D 数据，co-issue 会自动将它们合并，在同一个 ALU 只需一个指令周期即可执行完。</p>
+<p><img src="/source/images/GPU/can-coissue.png"></p>
+<p>但是，对于向量运算单元（Vector ALU），如果其中一个变量既是操作数又是存储数的情况，无法启用 co-issue 技术：</p>
+<p><img src="/source/images/GPU/cannot-coissue.png"></p>
+<p>于是<strong>标量指令着色器</strong>（Scalar Instruction Shader）应运而生，它可以有效地组合任何向量，开启 co-issue 技术，充分发挥 SIMD 的优势。</p>
+<h4 id="if-else-语句"><a href="#if-else-语句" class="headerlink" title="if-else 语句"></a><code>if-else</code> 语句</h4><p><img src="../images/GPU/ifelse.png"></p>
+<p>如上图，SM 中有 8 个 ALU（Core），由于 SIMD 的特性，每个 ALU 的数据不一样，导致 <code>if-else</code> 语句在某些 ALU 中执行的是<code>true</code>分支（黄色），有些 ALU 执行的是<code>false</code>分支（灰蓝色），这样导致很多 ALU 的执行周期被浪费掉了（即 masked out），拉长了整个执行周期。最坏的情况，同一个 SM 中只有 1/8（8 是同一个 SM 的线程数，不同架构的 GPU 有所不同）的利用率。</p>
+<p>同样，for 循环也会导致类似的情形，例如以下 shader 代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> count, <span class="keyword">int</span> breakNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;count; ++i)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (i == breakNum)</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="comment">// do something</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于每个 ALU 的<code>count</code>不一样，加上有<code>break</code>分支，导致最快执行完 shader 的 ALU 可能是最慢的 N 分之一的时间，但由于 SIMD 的特性，最快的那个 ALU 依然要等待最慢的 ALU 执行完毕，才能接下一组指令的活！也就白白浪费了很多时间周期。</p>
+<h4 id="Early-Z"><a href="#Early-Z" class="headerlink" title="Early-Z"></a>Early-Z</h4><p>早期 GPU 的渲染管线的深度测试是在像素着色器之后才执行（下图），这样会造成很多本不可见的像素执行了耗性能的像素着色器计算。</p>
+<p><img src="../images/GPU/earlyz1.png"></p>
+<p>后来，为了减少像素着色器的额外消耗，将深度测试提至像素着色器之前（下图），这就是 Early-Z 技术的由来。</p>
+<p><img src="../images/GPU/earlyz2.png"></p>
+<p>Early-Z 技术可以将很多无效的像素提前剔除，避免它们进入耗时严重的像素着色器。Early-Z 剔除的最小单位不是 1 像素，而是像素块（pixel quad，2x2 个像素。</p>
+<p>但是，以下情况会导致 Early-Z 失效：</p>
+<p>开启 Alpha Test：由于 Alpha Test 需要在像素着色器后面的 Alpha Test 阶段比较，所以无法在像素着色器之前就决定该像素是否被剔除。</p>
+<ul>
+<li>开启 Alpha Blend：启用了 Alpha 混合的像素很多需要与 frame buffer 做混合，无法执行深度测试，也就无法利用 Early-Z 技术。</li>
+<li>开启 Tex Kill：即在 shader 代码中有像素摒弃指令（DX 的 discard，OpenGL 的 clip）。</li>
+<li>关闭深度测试。Early-Z 是建立在深度测试看开启的条件下，如果关闭了深度测试，也就无法启用 Early-Z 技术。</li>
+<li>开启 Multi-Sampling：多采样会影响周边像素，而 Early-Z 阶段无法得知周边像素是否被裁剪，故无法提前剔除。</li>
+<li>以及其它任何导致需要混合后面颜色的操作。</li>
+</ul>
+<p>此外，Early-Z 技术会导致一个问题：深度数据冲突（depth data hazard）。</p>
+<p><img src="../images/GPU/earlyz-hazard.png"></p>
+<p>例子要结合上图，假设数值深度值 5 已经经过 Early-Z 即将写入 Frame Buffer，而深度值 10 刚好处于 Early-Z 阶段，读取并对比当前缓存的深度值 15，结果就是 10 通过了 Early-Z 测试，会覆盖掉比自己小的深度值 5，最终 frame buffer 的深度值是错误的结果。</p>
+<p>避免深度数据冲突的方法之一是在写入深度值之前，再次与 frame buffer 的值进行对比：</p>
+<p><img src="../images/GPU/earlyz-buffer.png"></p>
+<h4 id="统一着色器架构（Unified-shader-Architecture）"><a href="#统一着色器架构（Unified-shader-Architecture）" class="headerlink" title="统一着色器架构（Unified shader Architecture）"></a>统一着色器架构（Unified shader Architecture）</h4><p>在早期的 GPU，顶点着色器和像素着色器的硬件结构是独立的，它们各有各的寄存器、运算单元等部件。这样很多时候，会造成顶点着色器与像素着色器之间任务的不平衡。对于顶点数量多的任务，像素着色器空闲状态多；对于像素多的任务，顶点着色器的空闲状态多（下图）。</p>
+<p><img src="../images/GPU/vp-problem.png"></p>
+<p>于是，为了解决 VS 和 PS 之间的不平衡，引入了统一着色器架构（Unified shader Architecture）。用了此架构的 GPU，VS 和 PS 用的都是相同的 Core。也就是，同一个 Core 既可以是 VS 又可以是 PS。</p>
+<p><img src="../images/GPU/unified-arch.png"></p>
+<p>这样就解决了不同类型着色器之间的不平衡问题，还可以减少 GPU 的硬件单元，压缩物理尺寸和耗电量。此外，VS、PS 可还可以和其它着色器（几何、曲面、计算）统一为一体。</p>
+<p><img src="../images/GPU/unified-pipe.png"></p>
+<h4 id="像素块（Pixel-Quad）"><a href="#像素块（Pixel-Quad）" class="headerlink" title="像素块（Pixel Quad）"></a>像素块（Pixel Quad）</h4><p>上一节步骤 13 提到：</p>
+<blockquote>
+<p>32 个像素线程将被分成一组，或者说 8 个 2x2 的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM 中的 warp 调度器会管理像素着色器的任务。</p>
+</blockquote>
+<p>也就是说，在像素着色器中，会将相邻的四个像素作为不可分隔的一组，送入同一个 SM 内 4 个不同的 Core。</p>
+<blockquote>
+<p>为什么像素着色器处理的最小单元是 2x2 的像素块？<br>笔者推测有以下原因：</p>
+<ol>
+<li>简化和加速像素分派的工作。</li>
+<li>精简 SM 的架构，减少硬件单元数量和尺寸。</li>
+<li>降低功耗，提高效能比。</li>
+<li>无效像素虽然不会被存储结果，但可辅助有效像素求导函数。详见 4.6 利用扩展例证。</li>
+</ol>
+</blockquote>
+<p>这种设计虽然有其优势，但同时，也会激化过绘制（Over Draw）的情况，损耗额外的性能。比如下图中，白色的三角形只占用了 3 个像素（绿色），按我们普通的思维，只需要 3 个 Core 绘制 3 次就可以了。</p>
+<p><img src="../images/GPU/pq3.png"></p>
+<p>但是，由于上面的 3 个像素分别占据了不同的像素块（橙色分隔），实际上需要占用 12 个 Core 绘制 12 次（下图）。</p>
+<p><img src="../images/GPU/pq12.png"></p>
+<p>这就会额外消耗 300%的硬件性能，导致了更加严重的过绘制情况。</p>
+<p>更多详情可以观看虚幻官方的视频教学：实时渲染深入探究。</p>
+<h2 id="GPU-资源机制"><a href="#GPU-资源机制" class="headerlink" title="GPU 资源机制"></a>GPU 资源机制</h2><p>本节将阐述 GPU 的内存访问、资源管理等机制。</p>
+<h3 id="内存架构"><a href="#内存架构" class="headerlink" title="内存架构"></a>内存架构</h3><p>部分架构的 GPU 与 CPU 类似，也有多级缓存结构：寄存器、L1 缓存、L2 缓存、GPU 显存、系统显存。</p>
+<p><img src="../images/GPU/cpu-mem.png"></p>
+<p>它们的存取速度从寄存器到系统内存依次变慢：</p>
+<table>
+<thead>
+<tr>
+<th>存储类型</th>
+<th>寄存器</th>
+<th>共享内存</th>
+<th>L1 缓存</th>
+<th>L2 缓存</th>
+<th>纹理、常量缓存</th>
+<th>全局内存</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>访问周期</td>
+<td>1</td>
+<td>1~32</td>
+<td>1~32</td>
+<td>32~64</td>
+<td>400~600</td>
+<td>400~600</td>
+</tr>
+</tbody></table>
+<p>由此可见，shader 直接访问寄存器、L1、L2 缓存还是比较快的，但访问纹理、常量缓存和全局内存非常慢，会造成很高的延迟。</p>
+<p>上面的多级缓存结构可被称为“CPU-Style”，还存在 GPU-Style 的内存架构：</p>
+<p><img src="../images/GPU/gpu-mem.png"></p>
+<p>这种架构的特点是 ALU 多，GPU 上下文（Context）多，吞吐量高，依赖<strong>高带宽与系统内存交换数据</strong>。</p>
+<h3 id="GPU-Context-和延迟"><a href="#GPU-Context-和延迟" class="headerlink" title="GPU Context 和延迟"></a>GPU Context 和延迟</h3><p>由于 SIMT 技术的引入，导致很多同一个 SM 内的很多 Core 并不是独立的，当它们当中有部分 Core 需要访问到纹理、常量缓存和全局内存时，就会导致非常大的卡顿（Stall）。</p>
+<p>例如下图中，有 4 组上下文（Context），它们共用同一组运算单元 ALU。</p>
+<p><img src="../images/GPU/context-s1.png"></p>
+<p>假设第一组 Context 需要访问缓存或内存，会导致 2~3 个周期的延迟，此时调度器会激活第二组 Context 以利用 ALU：</p>
+<p><img src="../images/GPU/context-s2.png"></p>
+<p>当第二组 Context 访问缓存或内存又卡住，会依次激活第三、第四组 Context，直到第一组 Context 恢复运行或所有都被激活：</p>
+<p><img src="../images/GPU/context-s3.png"></p>
+<p>延迟的后果是每组 Context 的总体执行时间被拉长了：</p>
+<p><img src="../images/GPU/context-s4.png"></p>
+<p>但是，越多 Context 可用就越可以提升运算单元的吞吐量，比如下图的 18 组 Context 的架构可以最大化地提升吞吐量：</p>
+<p><img src="../images/GPU/context.png"></p>
+<h3 id="CPU-GPU-异构系统"><a href="#CPU-GPU-异构系统" class="headerlink" title="CPU-GPU 异构系统"></a>CPU-GPU 异构系统</h3><p>根据 CPU 和 GPU 是否共享内存，可分为两种类型的 CPU-GPU 架构：</p>
+<p><img src="../images/GPU/cpu-gpu.png"></p>
+<p>上图左是<strong>分离式架构</strong>，CPU 和 GPU 各自有独立的缓存和内存，它们通过 PCI-e 等总线通讯。这种结构的缺点在于 PCI-e 相对于两者具有低带宽和高延迟，数据的传输成了其中的性能瓶颈。目前使用非常广泛，如 PC、智能手机等。</p>
+<p>上图右是<strong>耦合式架构</strong>，CPU 和 GPU 共享内存和缓存。AMD 的 APU 采用的就是这种结构，目前主要使用在游戏主机中，如 PS4。</p>
+<p>在存储管理方面，分离式结构中 CPU 和 GPU 各自拥有独立的内存，两者共享一套虚拟地址空间，必要时会进行内存拷贝。对于耦合式结构，GPU 没有独立的内存，与 GPU 共享系统内存，由 MMU 进行存储管理。</p>
+<h3 id="GPU-资源管理模型"><a href="#GPU-资源管理模型" class="headerlink" title="GPU 资源管理模型"></a>GPU 资源管理模型</h3><p>下图是分离式架构的资源管理模型：</p>
+<p><img src="../images/GPU/GPU-resource.png"></p>
+<ul>
+<li><p>MMIO（Memory Mapped IO）</p>
+<ul>
+<li>CPU 与 GPU 的交流就是通过 MMIO 进行的。CPU 通过 MMIO 访问 GPU 的寄存器状态。</li>
+<li>DMA 传输大量的数据就是通过 MMIO 进行命令控制的。</li>
+<li>I/O 端口可用于间接访问 MMIO 区域，像 Nouveau 等开源软件从来不访问它。</li>
+</ul>
+</li>
+<li><p>GPU Context</p>
+<ul>
+<li>GPU Context 代表了 GPU 计算的状态。</li>
+<li>在 GPU 中拥有自己的虚拟地址。</li>
+<li>GPU 中可以并存多个活跃态下的 Context。</li>
+</ul>
+</li>
+<li><p>GPU Channel</p>
+<ul>
+<li>任何命令都是由 CPU 发出。</li>
+<li>命令流（command stream）被提交到硬件单元，也就是 GPU Channel。</li>
+<li>每个 GPU Channel 关联一个 context，而一个 GPU Context 可以有多个 GPU channel。</li>
+<li>每个 GPU Context 包含相关 channel 的 GPU Channel Descriptors ，每个 Descriptor 都是 GPU 内存中的一个对象。</li>
+<li>每个 GPU Channel Descriptor 存储了 Channel 的设置，其中就包括 Page Table 。</li>
+<li>每个 GPU Channel 在 GPU 内存中分配了唯一的命令缓存，这通过 MMIO 对 CPU 可见。</li>
+<li>GPU Context Switching 和命令执行都在 GPU 硬件内部调度。</li>
+</ul>
+</li>
+<li><p>GPU Page Table</p>
+<ul>
+<li>GPU Context 在虚拟基地空间由 Page Table 隔离其它的 Context 。</li>
+<li>GPU Page Table 隔离 CPU Page Table，位于 GPU 内存中。</li>
+<li>GPU Page Table 的物理地址位于 GPU Channel Descriptor 中。</li>
+<li>GPU Page Table 不仅仅将 GPU 虚拟地址转换成 GPU 内存的物理地址，也可以转换成 CPU 的物理地址。因此，GPU Page Table 可以将 GPU 虚拟地址和 CPU 内存地址统一到 GPU 统一虚拟地址空间来。</li>
+</ul>
+</li>
+<li><p>PCI-e BAR</p>
+<ul>
+<li>GPU 设备通过 PCI-e 总线接入到主机上。 Base Address Registers(BARs) 是 MMIO 的窗口，在 GPU 启动时候配置。</li>
+<li>GPU 的控制寄存器和内存都映射到了 BARs 中。</li>
+<li>GPU 设备内存通过映射的 MMIO 窗口去配置 GPU 和访问 GPU 内存。</li>
+</ul>
+</li>
+<li><p>PFIFO Engine</p>
+<ul>
+<li>PFIFO 是 GPU 命令提交通过的一个特殊的部件。</li>
+<li>PFIFO 维护了一些独立命令队列，也就是 Channel。</li>
+<li>此命令队列是 Ring Buffer，有 PUT 和 GET 的指针。</li>
+<li>所有访问 Channel 控制区域的执行指令都被 PFIFO 拦截下来。</li>
+<li>GPU 驱动使用 Channel Descriptor 来存储相关的 Channel 设定。</li>
+<li>PFIFO 将读取的命令转交给 PGRAPH Engine。</li>
+</ul>
+</li>
+<li><p>BO</p>
+<ul>
+<li>Buffer Object (BO)，内存的一块(Block)，能够用于存储纹理（Texture）、渲染目标（Render Target）、着色代码（shader code）等等。</li>
+<li>Nouveau 和 Gdev 经常使用 BO。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Nouveau 是一个自由及开放源代码显卡驱动程序，是为 NVidia 的显卡所编写。<br>Gdev 是一套丰富的开源软件，用于 NVIDIA 的 GPGPU 技术，包括设备驱动程序。</p>
+</blockquote>
+<h3 id="CPU-GPU-数据流"><a href="#CPU-GPU-数据流" class="headerlink" title="CPU-GPU 数据流"></a>CPU-GPU 数据流</h3><p>下图是分离式架构的 CPU-GPU 的数据流程图：</p>
+<p><img src="../images/GPU/dataflow.png"></p>
+<ol>
+<li>将主存的处理数据复制到显存中。</li>
+<li>CPU 指令驱动 GPU。</li>
+<li>GPU 中的每个运算单元并行处理。此步会从显存存取数据。</li>
+<li>GPU 将显存结果传回主存。</li>
+</ol>
+<h3 id="显像机制"><a href="#显像机制" class="headerlink" title="显像机制"></a>显像机制</h3><ul>
+<li>水平和垂直同步信号</li>
+</ul>
+<p>在早期的 CRT 显示器，电子枪从上到下逐行扫描，扫描完成后显示器就呈现一帧画面。然后电子枪回到初始位置进行下一次扫描。为了同步显示器的显示过程和系统的视频控制器，显示器会用硬件时钟产生一系列的定时信号。</p>
+<p><img src="../images/GPU/elecgun.png"></p>
+<p>当电子枪换行进行扫描时，显示器会发出一个水平同步信号（horizonal synchronization），简称 HSync</p>
+<p>当一帧画面绘制完成后，电子枪回复到原位，准备画下一帧前，显示器会发出一个垂直同步信号（vertical synchronization），简称 VSync。</p>
+<p>显示器通常以固定频率进行刷新，这个刷新率就是 VSync 信号产生的频率。虽然现在的显示器基本都是液晶显示屏了，但其原理基本一致。</p>
+<p>CPU 将计算好显示内容提交至 GPU，GPU 渲染完成后将渲染结果存入帧缓冲区，视频控制器会按照 VSync 信号逐帧读取帧缓冲区的数据，经过数据转换后最终由显示器进行显示。</p>
+<p><img src="../images/GPU/hsync.png"></p>
+<ul>
+<li>双缓冲</li>
+</ul>
+<p>在单缓冲下，帧缓冲区的读取和刷新都都会有比较大的效率问题，经常会出现相互等待的情况，导致帧率下降。</p>
+<p>为了解决效率问题，GPU 通常会引入两个缓冲区，即<strong>双缓冲机制</strong>。在这种情况下，GPU 会预先渲染一帧放入一个缓冲区中，用于视频控制器的读取。当下一帧渲染完毕后，GPU 会直接把视频控制器的指针指向第二个缓冲器。</p>
+<p><img src="../images/GPU/double-buffer.png"></p>
+<ul>
+<li>垂直同步</li>
+</ul>
+<p>双缓冲虽然能解决效率问题，但会引入一个新的问题。当视频控制器还未读取完成时，即屏幕内容刚显示一半时，GPU 将新的一帧内容提交到帧缓冲区并把两个缓冲区进行交换后，视频控制器就会把新的一帧数据的下半段显示到屏幕上，造成画面撕裂现象：</p>
+<p><img src="../images/GPU/vsyncoff.jpg"></p>
+<p>为了解决这个问题，GPU 通常有一个机制叫做垂直同步（简写也是 V-Sync），当开启垂直同步后，GPU 会等待显示器的 VSync 信号发出后，才进行新的一帧渲染和缓冲区更新。这样能解决画面撕裂现象，也增加了画面流畅度，但需要消费更多的计算资源，也会带来部分延迟。</p>
+<h2 id="Shader-运行机制"><a href="#Shader-运行机制" class="headerlink" title="Shader 运行机制"></a>Shader 运行机制</h2><p>Shader 代码也跟传统的 C++等语言类似，需要将面向人类的高级语言（GLSL、HLSL、CGSL）通过编译器转成面向机器的二进制指令，二进制指令可转译成汇编代码，以便技术人员查阅和调试。</p>
+<p><img src="../images/GPU/highlevelcode.png"></p>
+<p>由高级语言编译成汇编指令的过程通常是在离线阶段执行，以减轻运行时的消耗。</p>
+<p>在执行阶段，CPU 端将 shader 二进制指令经由 PCI-e 推送到 GPU 端，GPU 在执行代码时，会用 Context 将指令分成若干 Channel 推送到各个 Core 的存储空间。</p>
+<p>对现代 GPU 而言，可编程的阶段越来越多，包含但不限于：</p>
+<ul>
+<li>顶点着色器（Vertex Shader）</li>
+<li>曲面细分控制着色器（Tessellation Control Shader）</li>
+<li>几何着色器（Geometry Shader）</li>
+<li>像素/片元着色器（Fragment Shader）</li>
+<li>计算着色器（Compute Shader）</li>
+<li>…</li>
+</ul>
+<p><img src="../images/GPU/gpu-program.png"></p>
+<p>这些着色器形成流水线式的并行化的渲染管线。下面将配合具体的例子说明。</p>
+<p>下段是计算漫反射的经典代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sampler mySamp;</span><br><span class="line">Texture2D&lt;float3&gt; myTex;</span><br><span class="line">float3 lightDir;</span><br><span class="line"></span><br><span class="line"><span class="function">float4 <span class="title">diffuseShader</span><span class="params">(float3 norm, float2 uv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  float3 kd;</span><br><span class="line">  kd = myTex.Sample(mySamp, uv);</span><br><span class="line">  kd *= clamp( dot(lightDir, norm), <span class="number">0.0</span>, <span class="number">1.0</span>);</span><br><span class="line">  <span class="keyword">return</span> float4(kd, <span class="number">1.0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经过编译后成为汇编代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;diffuseShader&gt;:</span><br><span class="line">sample r0, v4, t0, s0</span><br><span class="line">mul    r3, v0, cb0[0]</span><br><span class="line">madd   r3, v1, cb0[1], r3</span><br><span class="line">madd   r3, v2, cb0[2], r3</span><br><span class="line">clmp   r3, r3, l(0.0), l(1.0)</span><br><span class="line">mul    o0, r0, r3</span><br><span class="line">mul    o1, r1, r3</span><br><span class="line">mul    o2, r2, r3</span><br><span class="line">mov    o3, l(1.0)</span><br></pre></td></tr></table></figure>
+<p>在执行阶段，以上汇编代码会被 GPU 推送到执行上下文（Execution Context），然后 ALU 会逐条获取（Detch）、解码（Decode）汇编指令，并执行它们。</p>
+<p><img src="../images/GPU/pipeline.png"></p>
+<p>以上示例图只是单个 ALU 的执行情况，实际上，GPU 有几十甚至上百个执行单元在同时执行 shader 指令：</p>
+<p><img src="../images/GPU/multicore.png"></p>
+<p>对于 SIMT 架构的 GPU，汇编指令有所不同，变成了 SIMT 特定指令代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;VEC8_diffuseShader&gt;:</span><br><span class="line">VEC8_sample vec_r0, vec_v4, t0, vec_s0</span><br><span class="line">VEC8_mul    vec_r3, vec_v0, cb0[0]</span><br><span class="line">VEC8_madd   vec_r3, vec_v1, cb0[1], vec_r3</span><br><span class="line">VEC8_madd   vec_r3, vec_v2, cb0[2], vec_r3</span><br><span class="line">VEC8_clmp   vec_r3, vec_r3, l(0.0), l(1.0)</span><br><span class="line">VEC8_mul    vec_o0, vec_r0, vec_r3</span><br><span class="line">VEC8_mul    vec_o1, vec_r1, vec_r3</span><br><span class="line">VEC8_mul    vec_o2, vec_r2, vec_r3</span><br><span class="line">VEC8_mov    o3, l(1.0)</span><br></pre></td></tr></table></figure>
+<p>并且 Context 以 Core 为单位组成共享的结构，同一个 Core 的多个 ALU 共享一组 Context：</p>
+<p><img src="../images/GPU/SIMT-ass.png"></p>
+<p>如果有多个 Core，就会有更多的 ALU 同时参与 shader 计算，每个 Core 执行的数据是不一样的，可能是顶点、图元、像素等任何数据：</p>
+<p><img src="../images/GPU/multi-alu.png"></p>
+<h2 id="利用扩展例证"><a href="#利用扩展例证" class="headerlink" title="利用扩展例证"></a>利用扩展例证</h2><p>略，详见参考文献</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="CPU-vs-GPU"><a href="#CPU-vs-GPU" class="headerlink" title="CPU vs GPU"></a>CPU vs GPU</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>CPU</th>
+<th>GPU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟容忍度</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>并行目标</td>
+<td>任务（Task）</td>
+<td>数据（Data）</td>
+</tr>
+<tr>
+<td>核心架构</td>
+<td>多线程核心</td>
+<td>SIMT 核心</td>
+</tr>
+<tr>
+<td>线程数量级别</td>
+<td>10</td>
+<td>10000</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>缓存需求量</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>线程独立性</td>
+<td>低</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<p>它们之间的差异（缓存、核心数量、内存、线程数等）可用下图展示出来：</p>
+<p><img src="../images/GPU/cpuvsgpu.png"></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://www.cnoblogs.com/timlly/p/11471507.html">https://www.cnoblogs.com/timlly/p/11471507.html</a></p>
 
       
     </div>
@@ -608,6 +1624,9 @@
 
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 
@@ -674,20 +1693,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="CMake 语法CMake 语句主要有 3 类用法：  设置变量:  set file list find_library aux_source_directory $&lt;...&gt;: generator expressions   设置target: 构建的目标（一般来说就是库或者可执行文件）  add_library add_executable   设置target的属性: 定义如何">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cmake-learn">
+<meta property="og:url" content="http://example.com/2021-05-20-cmake-learn/">
+<meta property="og:site_name" content="罗列的博客">
+<meta property="og:description" content="CMake 语法CMake 语句主要有 3 类用法：  设置变量:  set file list find_library aux_source_directory $&lt;...&gt;: generator expressions   设置target: 构建的目标（一般来说就是库或者可执行文件）  add_library add_executable   设置target的属性: 定义如何">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-20T07:58:59.000Z">
+<meta property="article:modified_time" content="2021-05-23T02:37:41.218Z">
+<meta property="article:author" content="Luo Lie">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021-05-20-cmake-learn/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cmake-learn | 罗列的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">罗列的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个罗列发呆的地方</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-05-20-cmake-learn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cmake-learn
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-20 15:58:59" itemprop="dateCreated datePublished" datetime="2021-05-20T15:58:59+08:00">2021-05-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-23 10:37:41" itemprop="dateModified" datetime="2021-05-23T10:37:41+08:00">2021-05-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="CMake-语法"><a href="#CMake-语法" class="headerlink" title="CMake 语法"></a>CMake 语法</h2><p>CMake 语句主要有 3 类用法：</p>
+<ul>
+<li><p>设置变量:</p>
+<ul>
+<li><code>set</code></li>
+<li><code>file</code></li>
+<li><code>list</code></li>
+<li><code>find_library</code></li>
+<li><code>aux_source_directory</code></li>
+<li><code>$&lt;...&gt;</code>: generator expressions</li>
+</ul>
+</li>
+<li><p>设置<code>target</code>: 构建的目标（一般来说就是库或者可执行文件）</p>
+<ul>
+<li><code>add_library</code></li>
+<li><code>add_executable</code></li>
+</ul>
+</li>
+<li><p>设置<code>target</code>的属性: 定义如何生成 target（源文件的路径、编译选项、要链接的库…）</p>
+<ul>
+<li><code>add_definitions</code></li>
+<li><code>target_link_libraries</code></li>
+<li><code>link_directories</code></li>
+<li><code>include_directories</code></li>
+<li><code>target_include_directories</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h3><ol>
+<li><code>project</code></li>
+</ol>
+<p>设置项目的名字</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">project</span>(SYSZUXrtp)</span><br><span class="line"></span><br><span class="line"><span class="comment"># or more parm</span></span><br><span class="line"><span class="keyword">project</span>(</span><br><span class="line">    libdeepvac</span><br><span class="line">    LANGUAGES CXX</span><br><span class="line">    VERSION <span class="string">&quot;1.0.0&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="设置变量"><a href="#设置变量" class="headerlink" title="设置变量"></a>设置变量</h3><ol>
+<li><code>set(var content)</code></li>
+</ol>
+<p>其中 <code>content</code> 可以有空格换行等，第一个空格前是变量名</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(SYSZUX_HEADERS</span><br><span class="line">    <span class="keyword">include</span>/detail/class.h</span><br><span class="line">    <span class="keyword">include</span>/detail/common.h</span><br><span class="line">    <span class="keyword">include</span>/detail/descr.h</span><br><span class="line">    <span class="keyword">include</span>/detail/init.h</span><br><span class="line">    <span class="keyword">include</span>/internals.h</span><br><span class="line">    <span class="keyword">include</span>/detail/typeid.h)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><code>file</code></li>
+</ol>
+<p>使用正则匹配文件，并将文件路径赋值给第一个参数（为变量）</p>
+<ol start="3">
+<li><code>list</code></li>
+</ol>
+<p>针对<code>list</code>进行各种操作，如增删改查</p>
+<ol start="4">
+<li><code>find_library</code></li>
+</ol>
+<p>寻找一个库，将找到的库的绝对路径赋值给变量。如</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">find_library</span>(LIBGEMFIELD_PATH libgemfield.so PATHS <span class="variable">$&#123;CUDA_TOOLKIT_ROOT_DIR&#125;</span>/lib64/)</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li><code>aux_source_directory(&lt;dir&gt; &lt;var&gt;)</code></li>
+</ol>
+<p>找到<code>dir</code>下所有的源文件赋值给<code>var</code>，如</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">aux_source_directory</span>(<span class="variable">$&#123;gemfield_root&#125;</span>/<span class="keyword">include</span> gemfield_src)</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li><code>$&lt;...&gt;</code>: generator expressions</li>
+</ol>
+<p>生成表达式，暂略</p>
+<h3 id="设置target"><a href="#设置target" class="headerlink" title="设置target"></a>设置<code>target</code></h3><ol>
+<li><code>add_library</code></li>
+</ol>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_library</span>(&lt;name&gt; [STATIC | SHARED | MODULE]</span><br><span class="line">            [EXCLUDE_FROM_ALL]</span><br><span class="line">            source1 [source2 ...])</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">add_library</span>(gemfield_static STATIC <span class="variable">$&#123;gemfield_src_list&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>将一系列库整合命名为<code>&lt;name&gt;</code></p>
+<ol start="2">
+<li><code>add_executable</code></li>
+</ol>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_executable</span>(&lt;name&gt; [WIN32] [MACOSX_BUNDLE]</span><br><span class="line">               [EXCLUDE_FROM_ALL]</span><br><span class="line">               source1 [source2 ...])</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">add_executable</span>(gemfield_proxy <span class="variable">$&#123;gemfield_src_list&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>将源文件生成可执行文件<code>&lt;name&gt;</code></p>
+<h3 id="设置target属性"><a href="#设置target属性" class="headerlink" title="设置target属性"></a>设置<code>target</code>属性</h3><ol>
+<li><code>add_definitions</code></li>
+</ol>
+<p>定义一些属性</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_definitions</span>(-DENABLE_GEMFIELD)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><code>target_link_libraries</code></li>
+</ol>
+<p>链接</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_link_libraries</span>(&lt;<span class="keyword">target</span>&gt; [item1 [item2 [...]]]</span><br><span class="line">                      [[debug|optimized|general] &lt;item&gt;] ...)</span><br><span class="line"></span><br><span class="line"><span class="comment"># eg</span></span><br><span class="line"><span class="keyword">target_link_libraries</span>(</span><br><span class="line">        gemfield_proxy</span><br><span class="line">        shared_static</span><br><span class="line">        json_static</span><br><span class="line">        mpeg_static</span><br><span class="line">        <span class="variable">$&#123;LINK_LIB_LIST&#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>链接<code>gemfield_proxy</code>的时候需要有后面的库</p>
+<h2 id="CMake-控制"><a href="#CMake-控制" class="headerlink" title="CMake 控制"></a>CMake 控制</h2><h3 id="if-else"><a href="#if-else" class="headerlink" title="if-else"></a><code>if-else</code></h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (xx <span class="keyword">AND</span> aa)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">elseif</span>(<span class="keyword">NOT</span> yy)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">else</span>(zz)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
+<h3 id="for"><a href="#for" class="headerlink" title="for"></a><code>for</code></h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">foreach</span>(i list_i)</span><br><span class="line"><span class="comment"># something</span></span><br><span class="line"><span class="keyword">endforeach</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="内置变量"><a href="#内置变量" class="headerlink" title="内置变量"></a>内置变量</h2><h3 id="系统变量"><a href="#系统变量" class="headerlink" title="系统变量"></a>系统变量</h3><ul>
+<li><code>MAKE_MAJOR_VERSION</code> : major version number for CMake, e.g. the “2” in CMake 2.4.3</li>
+<li><code>CMAKE_MINOR_VERSION</code> : minor version number for CMake, e.g. the “4” in CMake 2.4.3</li>
+<li><code>CMAKE_PATCH_VERSION</code> : patch version number for CMake, e.g. the “3” in CMake 2.4.3</li>
+<li><code>CMAKE_TWEAK_VERSION</code> : tweak version number for CMake, e.g. the “1” in CMake X.X.X.1. Releases use tweak &lt; 20000000 and development versions use the date format CCYYMMDD for the tweak level.</li>
+<li><code>CMAKE_VERSION</code> : The version number combined, eg. 2.8.4.20110222-ged5ba for a Nightly build. or 2.8.4 for a Release build.</li>
+<li><code>CMAKE_GENERATOR</code> : the generator specified on the commandline.</li>
+<li><code>BORLAND</code> : is TRUE on Windows when using a Borland compiler</li>
+<li><code>WATCOM</code> : is TRUE on Windows when using the Open Watcom compiler</li>
+<li><code>MSVC, MSVC_IDE, MSVC60, MSVC70, MSVC71, MSVC80, CMAKE_COMPILER_2005, MSVC90, MSVC10 (Visual Studio 2010)</code> : Microsoft compiler</li>
+<li><code>CMAKE_C_COMPILER_ID</code> : one of “Clang”, “GNU”, “Intel”, or “MSVC”. This works even if a compiler wrapper like ccache is used.</li>
+<li><code>CMAKE_CXX_COMPILER_ID</code> : one of “Clang”, “GNU”, “Intel”, or “MSVC”. This works even if a compiler wrapper like ccache is used；</li>
+<li><code>cmake_minimum_required</code>：设置所需 CMake 的最小版本；</li>
+</ul>
+<h3 id="编译相关变量"><a href="#编译相关变量" class="headerlink" title="编译相关变量!!"></a>编译相关变量!!</h3><ul>
+<li><code>CMAKE_CXX_STANDARD</code>：设置 C++ 标准；</li>
+<li><code>CMAKE_CXX_FLAGS</code>：设置 C++ 编译参数；</li>
+<li><code>CMAKE_C_FLAGS</code>：设置 C 编译参数</li>
+</ul>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -std=c++11 -w&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_FLAGS <span class="string">&quot;$&#123;CMAKE_C_FLAGS&#125; -w&quot;</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>BUILD_SHARED_LIBS</code> : if this is set to ON, then all libraries are built as shared libraries by default. SET(BUILD_SHARED_LIBS ON) ；</li>
+<li><code>CMAKE_BUILD_TYPE</code> : A variable which controls the type of build when using a single-configuration generator like the Makefile generator. It is case-insensitive；If you are using the Makefile generator, you can create your own build type like this:</li>
+</ul>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CMAKE_BUILD_TYPE distribution)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_FLAGS_DISTRIBUTION <span class="string">&quot;-O3&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_C_FLAGS_DISTRIBUTION <span class="string">&quot;-O3&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><h3 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/binbinjx/p/5626916.html">https://www.cnblogs.com/binbinjx/p/5626916.html</a></p>
+<h3 id="多源文件"><a href="#多源文件" class="headerlink" title="多源文件"></a>多源文件</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/dyyzlzc/article/details/105189374">https://blog.csdn.net/dyyzlzc/article/details/105189374</a></p>
+<h3 id="一些内容"><a href="#一些内容" class="headerlink" title="一些内容"></a>一些内容</h3><p><a target="_blank" rel="noopener" href="https://elloop.github.io/tools/2016-04-10/learning-cmake-2-commands">https://elloop.github.io/tools/2016-04-10/learning-cmake-2-commands</a></p>
+<p><a target="_blank" rel="noopener" href="https://wangpengcheng.github.io/2019/08/13/learn_cmake/">https://wangpengcheng.github.io/2019/08/13/learn_cmake/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-C/" rel="tag"># C/C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021-04-27-how-to-use-scons/" rel="prev" title="how-to-use-scons">
+      <i class="fa fa-chevron-left"></i> how-to-use-scons
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021-05-24-c-fstream/" rel="next" title="C++ 文件读写">
+      C++ 文件读写 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake-%E8%AF%AD%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">CMake 语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E5%8F%98%E9%87%8F"><span class="nav-number">1.2.</span> <span class="nav-text">设置变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AEtarget"><span class="nav-number">1.3.</span> <span class="nav-text">设置target</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AEtarget%E5%B1%9E%E6%80%A7"><span class="nav-number">1.4.</span> <span class="nav-text">设置target属性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake-%E6%8E%A7%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">CMake 控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#if-else"><span class="nav-number">2.1.</span> <span class="nav-text">if-else</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#for"><span class="nav-number">2.2.</span> <span class="nav-text">for</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E7%BD%AE%E5%8F%98%E9%87%8F"><span class="nav-number">3.</span> <span class="nav-text">内置变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%8F%98%E9%87%8F"><span class="nav-number">3.1.</span> <span class="nav-text">系统变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E7%9B%B8%E5%85%B3%E5%8F%98%E9%87%8F"><span class="nav-number">3.2.</span> <span class="nav-text">编译相关变量!!</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="nav-number">4.1.</span> <span class="nav-text">关键词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%BA%90%E6%96%87%E4%BB%B6"><span class="nav-number">4.2.</span> <span class="nav-text">多源文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%86%85%E5%AE%B9"><span class="nav-number">4.3.</span> <span class="nav-text">一些内容</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luo Lie"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Luo Lie</p>
+  <div class="site-description" itemprop="description">这是一个罗列发呆的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppg11" title="PPG11 → https:&#x2F;&#x2F;github.com&#x2F;ppg11" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luolie0577@gmail.com" title="E-Mail → luolie0577@gmail.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/6618849018" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;6618849018" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luo Lie</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

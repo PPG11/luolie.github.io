@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="sons 和 makefile 类似，可以编译多种源文件，不过它编译的脚本叫 SConstruct。 小试一下创建一个名为 SConstruct 的文件，按照 python 语法，写入如下内容。 1print(&quot;... Hello, Scons !&quot;) 运行一下 1234567$ sconsscons: Reading SConscript files ...... Hello">
+<meta property="og:type" content="article">
+<meta property="og:title" content="how-to-use-scons">
+<meta property="og:url" content="http://example.com/2021-04-27-how-to-use-scons/">
+<meta property="og:site_name" content="罗列的博客">
+<meta property="og:description" content="sons 和 makefile 类似，可以编译多种源文件，不过它编译的脚本叫 SConstruct。 小试一下创建一个名为 SConstruct 的文件，按照 python 语法，写入如下内容。 1print(&quot;... Hello, Scons !&quot;) 运行一下 1234567$ sconsscons: Reading SConscript files ...... Hello">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-27T07:10:14.000Z">
+<meta property="article:modified_time" content="2021-04-27T15:38:20.893Z">
+<meta property="article:author" content="Luo Lie">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021-04-27-how-to-use-scons/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>how-to-use-scons | 罗列的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">罗列的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个罗列发呆的地方</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-27-how-to-use-scons/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          how-to-use-scons
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-04-27 15:10:14 / 修改时间：23:38:20" itemprop="dateCreated datePublished" datetime="2021-04-27T15:10:14+08:00">2021-04-27</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>sons 和 makefile 类似，可以编译多种源文件，不过它编译的脚本叫 SConstruct。</p>
+<h3 id="小试一下"><a href="#小试一下" class="headerlink" title="小试一下"></a>小试一下</h3><p>创建一个名为 <code>SConstruct</code> 的文件，按照 <code>python</code> 语法，写入如下内容。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">print(<span class="string">&quot;... Hello, Scons !&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>运行一下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ scons</span><br><span class="line">scons: Reading SConscript files ...</span><br><span class="line">... Hello, Scons !</span><br><span class="line">scons: done reading SConscript files.</span><br><span class="line">scons: Building targets ...</span><br><span class="line">scons: &#96;.&#39; is up to date.</span><br><span class="line">scons: done building targets.</span><br></pre></td></tr></table></figure>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><h3 id="简单编译"><a href="#简单编译" class="headerlink" title="简单编译"></a>简单编译</h3><p>首先写一个简单的 C 文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;Hello, World!&quot;</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后只需要在 SConstruct 中编写</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>这个短小的配置文件给了 SCons 两条信息：</p>
+<ul>
+<li><code>hello.cpp</code>: 你想编译什么（一个可执行程序），你编译的输入文件（hello.cpp）。</li>
+<li><code>Program</code>: 一个编译器方法（builder_method），一个 Python 调用告诉 SCons，你想编译一个可执行程序。Program 编译方法是 SCons 提供的许多编译方法中一个。</li>
+</ul>
+<p>调用 Program 编译方法的的时候，它编译出来的程序名字是和源文件名是一样的。</p>
+<p>从 hello.cpp 源文件编译一个可执行程序的调用将会编译出一个名为 hello 的可执行程序，在 windows 系统里会编译出一个名为 hello.exe 的可执行程序。</p>
+<p>如果想编译出来的程序的名字与源文件名字不一样，只需要在源文件名的左边声明一个目标文件的名字就可以了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;new_hello&#x27;</span>,<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>SConstruct 文件实际上就是一个 Python 脚本。可以在 SConstruct 文件中使用 Python 的 <code>#</code> 注释：</p>
+<p>重要的一点是 SConstruct 文件并不完全像一个正常的 Python 脚本那样工作，其工作方式更像一个 Makefile，那就是在 SConstruct 文件中 SCons 函数被调用的顺序并不影响 SCons 你实际想编译程序和目标文件的顺序。换句话说，当你调用 Program 方法，你并不是告诉 SCons 在调用这个方法的同时马上就编译这个程序，而是告诉 SCons 你想编译这个程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span> <span class="string">&quot;Calling Program(&#x27;hello.c&#x27;)&quot;</span></span><br><span class="line">Program(<span class="string">&#x27;hello.c&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Calling Program(&#x27;goodbye.c&#x27;)&quot;</span></span><br><span class="line">Program(<span class="string">&#x27;goodbye.c&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Finished calling Program()&quot;</span></span><br></pre></td></tr></table></figure>
+<p>并不会顺序执行，因为 scons 是并行执行的这点要特别注意，是不同的线程进行编译的。</p>
+<h3 id="多个源文件"><a href="#多个源文件" class="headerlink" title="多个源文件"></a>多个源文件</h3><p>如果编译的源文件有多个.c 文件。可以这样写:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello_world&#x27;</span>, [<span class="string">&#x27;test.c&#x27;</span>, <span class="string">&#x27;test1.c&#x27;</span>, <span class="string">&#x27;test2.c&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>也可以使用 Glob 函数，定义一个匹配规则来指定源文件列表，比如*,?等标准的 shell 模式。如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(&#39;program&#39;, Glob(&#39;*.cpp&#39;))</span><br></pre></td></tr></table></figure>
+<p>为了更容易处理文件名长列表，SCons 提供了一个 Split 函数，这个 Split 函数可以将一个用引号引起来，并且以空格或其他空白字符分隔开的字符串分割成一个文件名列表，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;program&#x27;</span>, Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src_files=Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>)</span><br><span class="line">Program(<span class="string">&#x27;program&#x27;</span>, src_files)</span><br></pre></td></tr></table></figure>
+<p>SCons 也允许使用 Python 关键字参数来标识输出文件和输入文件。输出文件是 target，输入文件是 source，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src_files=Split(<span class="string">&#x27;main.cpp  file1.cpp  file2.cpp&#x27;</span>)</span><br><span class="line">Program(target=<span class="string">&#x27;program&#x27;</span>, source=src_files)</span><br></pre></td></tr></table></figure>
+<p>多个程序之间共享源文件是很常见的代码重用方法。一种方式就是利用公共的源文件创建一个库文件，然后其他的程序可以链接这个库文件。另一个更直接，但是不够便利的方式就是在每个程序的源文件列表中包含公共的文件，示例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">common=[<span class="string">&#x27;common1.cpp&#x27;</span>, <span class="string">&#x27;common2.cpp&#x27;</span>]</span><br><span class="line">foo_files=[<span class="string">&#x27;foo.cpp&#x27;</span>] + common</span><br><span class="line">bar_files=[<span class="string">&#x27;bar1.cpp&#x27;</span>, <span class="string">&#x27;bar2.cpp&#x27;</span>] + common</span><br><span class="line">Program(<span class="string">&#x27;foo&#x27;</span>, foo_files)</span><br><span class="line">Program(<span class="string">&#x27;bar&#x27;</span>, bar_files)</span><br></pre></td></tr></table></figure>
+<h3 id="编译和链接库"><a href="#编译和链接库" class="headerlink" title="编译和链接库"></a>编译和链接库</h3><h4 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h4><p>可以使用 Library 方法来编译库文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(&#39;foo&#39;, [&#39;f1.cpp&#39;, &#39;f2.cpp&#39;, &#39;f3.cpp&#39;])</span><br></pre></td></tr></table></figure>
+<p>除了使用源文件外，Library 也可以使用目标文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.c&#x27;</span>, <span class="string">&#x27;f2.o&#x27;</span>, <span class="string">&#x27;f3.c&#x27;</span>, <span class="string">&#x27;f4.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>甚至可以在文件 List 里混用源文件和目标文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.o&#x27;</span>, <span class="string">&#x27;f3.c&#x27;</span>, <span class="string">&#x27;f4.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>使用 StaticLibrary 显示编译静态库</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StaticLibrary(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h4 id="动态库"><a href="#动态库" class="headerlink" title="动态库"></a>动态库</h4><p>如果想编译动态库（在 POSIX 系统里）或 DLL 文件（Windows 系统），可以使用 SharedLibrary：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SharedLibrary(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h4 id="链接库"><a href="#链接库" class="headerlink" title="链接库"></a>链接库</h4><p>链接库文件的时候，使用$LIBS 变量指定库文件，使用$LIBPATH 指定存放库文件的目录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Library(<span class="string">&#x27;foo&#x27;</span>, [<span class="string">&#x27;f1.cpp&#x27;</span>, <span class="string">&#x27;f2.cpp&#x27;</span>, <span class="string">&#x27;f3.cpp&#x27;</span>])</span><br><span class="line">Program(<span class="string">&#x27;prog&#x27;</span>, LIBS=[<span class="string">&#x27;foo&#x27;</span>, <span class="string">&#x27;bar&#x27;</span>], LIBPATH=<span class="string">&#x27;.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意到，你不需要指定库文件的前缀（比如 lib）或后缀（比如.a 或.lib），SCons 会自动匹配。</p>
+</blockquote>
+<p>默认情况下，链接器只会在系统默认的库目录中寻找库文件。SCons 也会去$LIBPATH 指定的目录中去寻找库文件。$LIBPATH 由一个目录列表组成，如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;prog&#x27;</span>, LIBS=<span class="string">&#x27;m&#x27;</span>, LIBPATH=[<span class="string">&#x27;/usr/lib&#x27;</span>, <span class="string">&#x27;/usr/local/lib&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h3 id="节点对象"><a href="#节点对象" class="headerlink" title="节点对象"></a>节点对象</h3><p>所有编译方法会返回一个节点对象列表，这些节点对象标识了那些将要被编译的目标文件。这些返回出来的节点可以作为参数传递给其他的编译方法。例如，假设我们想编译两个目标文件，这两个目标有不同的编译选项，并且最终组成一个完整的程序。这意味着对每一个目标文件调用 Object 编译方法，如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Object(<span class="string">&#x27;hello.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DHELLO&#x27;</span>)</span><br><span class="line">Object(<span class="string">&#x27;goodbye.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DGOODBYE&#x27;</span>)</span><br><span class="line">Program([<span class="string">&#x27;hello.o&#x27;</span>, <span class="string">&#x27;goodbye.o&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>这样指定字符串名字的问题就是我们的 SConstruct 文件不再是跨平台的了。因为在 Windows 里，目标文件成为了 hello.obj 和 goodbye.obj。一个更好的解决方案就是将 Object 编译方法返回的目标列表赋值给变量，这些变量然后传递给 Program 编译方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hello_list = Object(<span class="string">&#x27;hello.cpp&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DHELLO&#x27;</span>)</span><br><span class="line">goodbye_list = Object(<span class="string">&#x27;goodbye.c&#x27;</span>, CCFLAGS=<span class="string">&#x27;-DGOODBYE&#x27;</span>)</span><br><span class="line">Program(hello_list + goodbye_list)</span><br></pre></td></tr></table></figure>
+<p><strong>显示创建文件和目录节点</strong></p>
+<p>在 SCons 里，表示文件的节点和表示目录的节点是有清晰区分的。SCons 的 File 和 Dir 函数分别返回一个文件和目录节点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello_c=File(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br><span class="line">Program(hello_c)</span><br></pre></td></tr></table></figure>
+<p>通常情况下，你不需要直接调用 File 或 Dir，因为调用一个编译方法的时候，SCons 会自动将字符串作为文件或目录的名字，以及将它们转换为节点对象。只有当你需要显示构造节点类型传递给编译方法或其他函数的时候，你才需要手动调用 File 和 Dir 函数。有时候，你需要引用文件系统中一个条目，同时你又不知道它是一个文件或一个目录，你可以调用 Entry 函数，它返回一个节点可以表示一个文件或一个目录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xyzzy=Entry(<span class="string">&#x27;xyzzy&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>将一个节点的文件名当作一个字符串</strong></p>
+<p>如果你不是想打印文件名，而是做一些其他的事情，你可以使用内置的 Python 的 str 函数。例如，你想使用 Python 的 os.path.exists 判断一个文件是否存在：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os.path</span><br><span class="line">program_list=Program(<span class="string">&#x27;hello.cpp&#x27;</span>)</span><br><span class="line">program_name=<span class="built_in">str</span>(program_list[<span class="number">0</span>])</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(program_name):</span><br><span class="line">    print(program_name, <span class="string">&quot;does not exist!&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="依赖性"><a href="#依赖性" class="headerlink" title="依赖性"></a>依赖性</h3><h4 id="隐式依赖：-CPPPATH-Construction-变量"><a href="#隐式依赖：-CPPPATH-Construction-变量" class="headerlink" title="隐式依赖：$CPPPATH Construction 变量"></a>隐式依赖：$CPPPATH Construction 变量</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;hello.h&quot;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;Hello, &quot;</span> &lt;&lt; <span class="built_in">string</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>并且，hello.h 文件如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> string <span class="meta-string">&quot;world&quot;</span></span></span><br></pre></td></tr></table></figure>
+<p>在这种情况下，我们希望 SCons 能够认识到，如果 hello.h 文件的内容发生改变，那么 hello 程序必须重新编译。我们需要修改 SConstruct 文件如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPPPATH 告诉 SCons 去当前目录(&#x27;.&#x27;) 查看那些被 C 源文件（.c或.h文件）包含的文件。</span></span><br><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>, CPPPATH=<span class="string">&#x27;.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>就像$LIBPATH 变量，$CPPPATH 也可能是一个目录列表，或者一个被系统特定路径分隔符分隔的字符串。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Program(<span class="string">&#x27;hello.cpp&#x27;</span>, CPPPATH=[<span class="string">&#x27;include&#x27;</span>, <span class="string">&#x27;/home/project/inc&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><h4 id="外部环境"><a href="#外部环境" class="headerlink" title="外部环境"></a>外部环境</h4><p>外部环境指的是在用户运行 SCons 的时候，用户环境中的变量的集合。这些变量在 SConscript 文件中通过 Python 的<code>os.environ</code>字典可以获得。你想使用外部环境的 SConscript 文件需要增加一个<code>import os</code>语句。</p>
+<h4 id="构造环境"><a href="#构造环境" class="headerlink" title="构造环境"></a>构造环境</h4><p>一个构造环境是在一个 SConscript 文件中创建的一个唯一的对象，这个对象包含了一些值可以影响 SCons 编译一个目标的时候做什么动作，以及决定从那一个源中编译出目标文件。SCons 一个强大的功能就是可以创建多个构造环境，包括从一个存在的构造环境中克隆一个新的自定义的构造环境。</p>
+<p><strong>创建一个构造环境：Environment 函数</strong></p>
+<p>默认情况下，SCons 基于你系统中工具的一个变量集合来初始化每一个新的构造环境。当你初始化一个构造环境时，你可以设置环境的构造变量来控制一个是如何编译的。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">env=Environment(CC=<span class="string">&#x27;gcc&#x27;</span>, CCFLAGS=<span class="string">&#x27;-O2&#x27;</span>)</span><br><span class="line">env.Program(<span class="string">&#x27;foo.c&#x27;</span>)</span><br><span class="line"><span class="comment"># or</span></span><br><span class="line">env=Environment(CXX=<span class="string">&#x27;/usr/local/bin/g++&#x27;</span>, CXXFLAGS=<span class="string">&#x27;-02&#x27;</span>)</span><br><span class="line">env.Program(<span class="string">&#x27;foo.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>从一个构造环境中获取值</strong></p>
+<p>你可以使用访问 Python 字典的方法获取单个的构造变量：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">env=Environment()</span><br><span class="line">print(<span class="string">&quot;CC is:&quot;</span>, env[<span class="string">&#x27;CC&#x27;</span>])</span><br><span class="line">print(<span class="string">&quot;CXX is:&quot;</span>, env[<span class="string">&#x27;CXX&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<p>一个构造环境实际上是一个拥有方法的对象。如果你想直接访问构造变量的字典，你可以使用 Dictionary 方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">env=Environment(FOO=<span class="string">&#x27;foo&#x27;</span>, BAR=<span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line"><span class="built_in">dict</span>=env.Dictionary()</span><br><span class="line"><span class="keyword">for</span> key <span class="keyword">in</span> [<span class="string">&#x27;OBJSUFFIX&#x27;</span>, <span class="string">&#x27;LIBSUFFIX&#x27;</span>, <span class="string">&#x27;PROGSUFFIX&#x27;</span>]:</span><br><span class="line">    print(<span class="string">&quot;key=%s, value=%s&quot;</span>  %  (key,<span class="built_in">dict</span>[key]))</span><br></pre></td></tr></table></figure>
+<p><strong>默认的构造环境：DefaultEnvironment 函数</strong></p>
+<p>可以控制默认构造环境的设置，使用 DefaultEnvironment 函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DefaultEnvironment(CC=<span class="string">&#x27;/usr/local/bin/gcc&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>这样配置以后，所有 Program 或者 Object 的调用都将使用/usr/local/bin/gcc 编译目标文件。注意到 DefaultEnvironment 返回初始化了的默认构造环境对象，这个对象可以像其他构造环境一样被操作。所以如下的代码和上面的例子是等价的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">env=DefaultEnvironment()</span><br><span class="line">env[<span class="string">&#x27;CC&#x27;</span>]=<span class="string">&#x27;/usr/local/bin/gcc&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><strong>多个构造环境</strong></p>
+<p>构造环境的真正优势是你可以创建你所需要的许多不同的构造环境，每一个构造环境对应了一种不同的方式去编译软件的一部分或其他文件。比如，如果我们需要用-O2 编译一个程序，编译另一个用-g，我们可以如下做：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">opt=Environment(CCFLAGS=<span class="string">&#x27;-O2&#x27;</span>)</span><br><span class="line">dbg=Environment(CCFLAGS=<span class="string">&#x27;-g&#x27;</span>)</span><br><span class="line">opt.Program(<span class="string">&#x27;foo&#x27;</span>,<span class="string">&#x27;foo.cpp&#x27;</span>)</span><br><span class="line">dbg.Program(<span class="string">&#x27;bar&#x27;</span>,<span class="string">&#x27;bar.cpp&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/MOU_IT/article/details/95229790">https://blog.csdn.net/MOU_IT/article/details/95229790</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-C/" rel="tag"># C/C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021-04-26-macos-install-systemc/" rel="prev" title="macos-install-systemc">
+      <i class="fa fa-chevron-left"></i> macos-install-systemc
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021-05-20-cmake-learn/" rel="next" title="cmake-learn">
+      cmake-learn <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E8%AF%95%E4%B8%80%E4%B8%8B"><span class="nav-number">1.</span> <span class="nav-text">小试一下</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%99%E7%A8%8B"><span class="nav-number"></span> <span class="nav-text">教程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">简单编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6"><span class="nav-number">2.</span> <span class="nav-text">多个源文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%92%8C%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-number">3.</span> <span class="nav-text">编译和链接库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%BA%93"><span class="nav-number">3.1.</span> <span class="nav-text">静态库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%BA%93"><span class="nav-number">3.2.</span> <span class="nav-text">动态库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-number">3.3.</span> <span class="nav-text">链接库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E5%AF%B9%E8%B1%A1"><span class="nav-number">4.</span> <span class="nav-text">节点对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E6%80%A7"><span class="nav-number">5.</span> <span class="nav-text">依赖性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E4%BE%9D%E8%B5%96%EF%BC%9A-CPPPATH-Construction-%E5%8F%98%E9%87%8F"><span class="nav-number">5.1.</span> <span class="nav-text">隐式依赖：$CPPPATH Construction 变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83"><span class="nav-number">6.</span> <span class="nav-text">环境</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%96%E9%83%A8%E7%8E%AF%E5%A2%83"><span class="nav-number">6.1.</span> <span class="nav-text">外部环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E7%8E%AF%E5%A2%83"><span class="nav-number">6.2.</span> <span class="nav-text">构造环境</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">7.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luo Lie"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Luo Lie</p>
+  <div class="site-description" itemprop="description">这是一个罗列发呆的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppg11" title="PPG11 → https:&#x2F;&#x2F;github.com&#x2F;ppg11" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luolie0577@gmail.com" title="E-Mail → luolie0577@gmail.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/6618849018" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;6618849018" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luo Lie</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

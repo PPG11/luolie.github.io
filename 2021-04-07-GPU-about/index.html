@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="GPU 是显卡（Video card、Display card、Graphics card）最核心的部件。但除了 GPU，显卡还有扇热器、通讯元件、与主板和显示器连接的各类插槽。 HistoryGPU 自从上世纪 90 年代出现雏形以来，经过 20 多年的发展，已经发展成不仅仅是渲染图形这么简单，还包含了数学计算、物理模拟、AI 运算等功能。(主要是因为对于数据密集任务的高效处理能力) NV GP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GPU 架构">
+<meta property="og:url" content="http://example.com/2021-04-07-GPU-about/">
+<meta property="og:site_name" content="罗列的博客">
+<meta property="og:description" content="GPU 是显卡（Video card、Display card、Graphics card）最核心的部件。但除了 GPU，显卡还有扇热器、通讯元件、与主板和显示器连接的各类插槽。 HistoryGPU 自从上世纪 90 年代出现雏形以来，经过 20 多年的发展，已经发展成不仅仅是渲染图形这么简单，还包含了数学计算、物理模拟、AI 运算等功能。(主要是因为对于数据密集任务的高效处理能力) NV GP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/source/images/GPU/GPU-size.jpg">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Tesla.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Fermi.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Maxwell.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Kepler.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Kerpler-Threads.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Turing.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Turing-SM.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/NV-Turing-physical.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/Fermi-run.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/Fermi-SM.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/Fermi-logic.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/Fermi-SM-run.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/GPU-store.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/GPU-triangle.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/GPU-distribution-crossbar.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/GPU-ROP.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/SIMD.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/SIMT.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/coissue-problem.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/can-coissue.png">
+<meta property="og:image" content="http://example.com/source/images/GPU/cannot-coissue.png">
+<meta property="og:image" content="http://example.com/images/GPU/ifelse.png">
+<meta property="og:image" content="http://example.com/images/GPU/earlyz1.png">
+<meta property="og:image" content="http://example.com/images/GPU/earlyz2.png">
+<meta property="og:image" content="http://example.com/images/GPU/earlyz-hazard.png">
+<meta property="og:image" content="http://example.com/images/GPU/earlyz-buffer.png">
+<meta property="og:image" content="http://example.com/images/GPU/vp-problem.png">
+<meta property="og:image" content="http://example.com/images/GPU/unified-arch.png">
+<meta property="og:image" content="http://example.com/images/GPU/unified-pipe.png">
+<meta property="og:image" content="http://example.com/images/GPU/pq3.png">
+<meta property="og:image" content="http://example.com/images/GPU/pq12.png">
+<meta property="og:image" content="http://example.com/images/GPU/cpu-mem.png">
+<meta property="og:image" content="http://example.com/images/GPU/gpu-mem.png">
+<meta property="og:image" content="http://example.com/images/GPU/context-s1.png">
+<meta property="og:image" content="http://example.com/images/GPU/context-s2.png">
+<meta property="og:image" content="http://example.com/images/GPU/context-s3.png">
+<meta property="og:image" content="http://example.com/images/GPU/context-s4.png">
+<meta property="og:image" content="http://example.com/images/GPU/context.png">
+<meta property="og:image" content="http://example.com/images/GPU/cpu-gpu.png">
+<meta property="og:image" content="http://example.com/images/GPU/GPU-resource.png">
+<meta property="og:image" content="http://example.com/images/GPU/dataflow.png">
+<meta property="og:image" content="http://example.com/images/GPU/elecgun.png">
+<meta property="og:image" content="http://example.com/images/GPU/hsync.png">
+<meta property="og:image" content="http://example.com/images/GPU/double-buffer.png">
+<meta property="og:image" content="http://example.com/images/GPU/vsyncoff.jpg">
+<meta property="og:image" content="http://example.com/images/GPU/highlevelcode.png">
+<meta property="og:image" content="http://example.com/images/GPU/gpu-program.png">
+<meta property="og:image" content="http://example.com/images/GPU/pipeline.png">
+<meta property="og:image" content="http://example.com/images/GPU/multicore.png">
+<meta property="og:image" content="http://example.com/images/GPU/SIMT-ass.png">
+<meta property="og:image" content="http://example.com/images/GPU/multi-alu.png">
+<meta property="og:image" content="http://example.com/images/GPU/cpuvsgpu.png">
+<meta property="article:published_time" content="2021-04-07T01:22:33.000Z">
+<meta property="article:modified_time" content="2021-04-27T15:38:20.893Z">
+<meta property="article:author" content="Luo Lie">
+<meta property="article:tag" content="体系结构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/source/images/GPU/GPU-size.jpg">
+
+<link rel="canonical" href="http://example.com/2021-04-07-GPU-about/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>GPU 架构 | 罗列的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">罗列的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">这是一个罗列发呆的地方</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021-04-07-GPU-about/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Luo Lie">
+      <meta itemprop="description" content="这是一个罗列发呆的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="罗列的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GPU 架构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-07 09:22:33" itemprop="dateCreated datePublished" datetime="2021-04-07T09:22:33+08:00">2021-04-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-27 23:38:20" itemprop="dateModified" datetime="2021-04-27T23:38:20+08:00">2021-04-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>GPU 是显卡（Video card、Display card、Graphics card）最核心的部件。<br>但除了 GPU，显卡还有扇热器、通讯元件、与主板和显示器连接的各类插槽。</p>
+<h2 id="History"><a href="#History" class="headerlink" title="History"></a>History</h2><p>GPU 自从上世纪 90 年代出现雏形以来，经过 20 多年的发展，已经发展成不仅仅是渲染图形这么简单，<br>还包含了数学计算、物理模拟、AI 运算等功能。(主要是因为对于数据密集任务的高效处理能力)</p>
+<h3 id="NV-GPU-架构发展"><a href="#NV-GPU-架构发展" class="headerlink" title="NV GPU 架构发展"></a>NV GPU 架构发展</h3><p>众所周知，CPU 的发展符合摩尔定律：每 18 个月速度翻倍。</p>
+<p>NVIDIA 创始人黄仁勋在很多年前曾信誓旦旦地说，GPU 的速度和功能要超越摩尔定律，每 6 个月就翻一倍。<br>NV 的 GPU 发展史证明，他确实做到了！GPU 的提速幅率远超 CPU。</p>
+<p>NVIDIA GPU 架构历经多次变革，从起初的 Tesla 发展到最新的 Turing 架构，发展史可分为以下时间节点：</p>
+<ul>
+<li><p>2008 - Tesla</p>
+<p>Tesla 最初是给计算处理单元使用的，应用于早期的 CUDA 系列显卡芯片中，并不是真正意义上的普通图形处理芯片。</p>
+</li>
+<li><p>2010 - Fermi</p>
+<p>Fermi 是第一个完整的 GPU 计算架构。首款可支持与共享存储结合纯 cache 层次的 GPU 架构，支持 ECC 的 GPU 架构。</p>
+</li>
+<li><p>2012 - Kepler</p>
+<p>Kepler 相较于 Fermi 更快，效率更高，性能更好。</p>
+</li>
+<li><p>2014 - Maxwell</p>
+<p>其全新的立体像素全局光照 (VXGI) 技术首次让游戏 GPU 能够提供实时的动态全局光照效果。基于 Maxwell 架构的 GTX 980 和 970 GPU 采用了包括多帧采样抗锯齿 (MFAA)、动态超级分辨率 (DSR)、VR Direct 以及超节能设计在内的一系列新技术。</p>
+</li>
+<li><p>2016 - Pascal</p>
+<p>Pascal 架构将处理器和数据集成在同一个程序包内，以实现更高的计算效率。1080 系列、1060 系列基于 Pascal 架构</p>
+</li>
+<li><p>2017 - Volta</p>
+<p>Volta 配备 640 个 Tensor 核心，每秒可提供超过 100 兆次浮点运算(TFLOPS) 的深度学习效能，比前一代的 Pascal 架构快 5 倍以上。</p>
+</li>
+<li><p>2018 - Turing</p>
+<p>Turing 架构配备了名为 RT Core 的专用光线追踪处理器，能够以高达每秒 10 Giga Rays 的速度对光线和声音在 3D 环境中的传播进行加速计算。Turing 架构将实时光线追踪运算加速至上一代 NVIDIA Pascal™ 架构的 25 倍，并能以高出 CPU 30 多倍的速度进行电影效果的最终帧渲染。2060 系列、2080 系列显卡也是跳过了 Volta 直接选择了 Turing 架构。</p>
+</li>
+</ul>
+<h3 id="GPU-功能"><a href="#GPU-功能" class="headerlink" title="GPU 功能"></a>GPU 功能</h3><p>现代 GPU 除了绘制图形外，还担当了很多额外的功能，综合起来如下几方面：</p>
+<ul>
+<li><p>图形绘制。</p>
+<p>这是 GPU 最传统的拿手好戏，也是最基础、最核心的功能。为大多数 PC 桌面、移动设备、图形工作站提供图形处理和绘制功能。</p>
+</li>
+<li><p>物理模拟。</p>
+<p>GPU 硬件集成的物理引擎（PhysX、Havok），为游戏、电影、教育、科学模拟等领域提供了成百上千倍性能的物理模拟，使得以前需要长时间计算的物理模拟得以实时呈现。</p>
+</li>
+<li><p>海量计算。</p>
+<p>计算着色器及流输出的出现，为各种可以并行计算的海量需求得以实现，CUDA 就是最好的例证。</p>
+</li>
+<li><p>AI 运算。</p>
+<p>近年来，人工智能的崛起推动了 GPU 集成了 AI Core 运算单元，反哺 AI 运算能力的提升，给各行各业带来了计算能力的提升。</p>
+</li>
+<li><p>其它计算。</p>
+<p>音视频编解码、加解密、科学计算、离线渲染等等都离不开现代 GPU 的并行计算能力和海量吞吐能力。</p>
+</li>
+</ul>
+<h2 id="物理架构"><a href="#物理架构" class="headerlink" title="物理架构"></a>物理架构</h2><p>由于纳米工艺的引入，GPU 可以将数以亿记的晶体管和电子器件集成在一个小小的芯片内。从宏观物理结构上看，现代大多数桌面级 GPU 的大小跟数枚硬币同等大小，部分甚至比一枚硬币还小（下图）。</p>
+<p><img src="/source/images/GPU/GPU-size.jpg" alt="GPU-size"></p>
+<p>当 GPU 结合散热风扇、PCI 插槽、HDMI 接口等部件之后，就组成了显卡。</p>
+<p>显卡不能独立工作，需要装载在主板上，结合 CPU、内存、显存、显示器等硬件设备，组成完整的 PC 机。</p>
+<p>GPU 的微观结构因不同厂商、不同架构都会有所差异，但核心部件、概念、以及运行机制大同小异。下面将展示部分架构的 GPU 微观物理结构。</p>
+<h3 id="NV-Tesla"><a href="#NV-Tesla" class="headerlink" title="NV Tesla"></a>NV Tesla</h3><p><img src="/source/images/GPU/NV-Tesla.png" alt="Tesla"></p>
+<p>Tesla 微观架构总览图如上。下面将阐述它的特性和概念：</p>
+<ul>
+<li>拥有 7 组 TPC（Texture/Processor Cluster，纹理处理簇）</li>
+<li>每个 TPC 有两组 SM（Stream Multiprocessor，流多处理器）每个 SM 包含：<ul>
+<li>6 个 SP（Streaming Processor，流处理器）</li>
+<li>2 个 SFU（Special Function Unit，特殊函数单元）</li>
+<li>L1 缓存、MT Issue（多线程指令获取）、C-Cache（常量缓存）、共享内存</li>
+</ul>
+</li>
+<li>除了 TPC 核心单元，还有与显存、CPU、系统内存交互的各种部件。</li>
+</ul>
+<h3 id="NV-Fermi"><a href="#NV-Fermi" class="headerlink" title="NV Fermi"></a>NV Fermi</h3><p><img src="/source/images/GPU/NV-Fermi.png" alt="NV-Fermi"></p>
+<p>拥有 16 个 SM</p>
+<ul>
+<li>每个 SM：<ul>
+<li>2 个 Warp（线程束）</li>
+<li>两组共 32 个 Core</li>
+<li>16 组加载存储单元（LD/ST）</li>
+<li>4 个特殊函数单元（SFU）</li>
+</ul>
+</li>
+<li>每个 Warp：<ul>
+<li>16 个 Core</li>
+<li>Warp 编排器（Warp Scheduler）</li>
+<li>分发单元（Dispatch Unit）</li>
+</ul>
+</li>
+<li>每个 Core：<ul>
+<li>1 个 FPU（浮点数单元）</li>
+<li>1 个 ALU（逻辑运算单元）</li>
+</ul>
+</li>
+</ul>
+<h3 id="NV-Maxwell"><a href="#NV-Maxwell" class="headerlink" title="NV Maxwell"></a>NV Maxwell</h3><p><img src="/source/images/GPU/NV-Maxwell.png" alt="NV-maxwell"></p>
+<p>采用了 Maxwell 的 GM204，拥有 4 个 GPC，每个 GPC 有 4 个 SM，对比 Tesla 架构来说，在处理单元上有了很大的提升</p>
+<h2 id="NV-Kepler"><a href="#NV-Kepler" class="headerlink" title="NV Kepler"></a>NV Kepler</h2><p><img src="/source/images/GPU/NV-Kepler.png" alt="NV-Kepler"></p>
+<p>Kepler 除了在硬件有了提升，有了更多处理单元之外，还将 SM 升级到了 SMX。SMX 是改进的架构，支持动态创建渲染线程（下图），以降低延迟。</p>
+<p><img src="/source/images/GPU/NV-Kerpler-Threads.png" alt="NV-Kerpler-Threads"></p>
+<h2 id="NV-Turing"><a href="#NV-Turing" class="headerlink" title="NV Turing"></a>NV Turing</h2><p><img src="/source/images/GPU/NV-Turing.png" alt="NV-Turing"></p>
+<p>上图是采纳了 Turing 架构的 TU102 GPU，它的特点如下：</p>
+<ul>
+<li>6 GPC（图形处理簇）</li>
+<li>36 TPC（纹理处理簇）</li>
+<li>72 SM（流多处理器）</li>
+<li>每个 GPC 有 6 个 TPC，每个 TPC 有 2 个 SM</li>
+<li>4,608 CUDA 核</li>
+<li>72 RT 核</li>
+<li>576 Tensor 核</li>
+<li>288 纹理单元</li>
+<li>12x32 位 GDDR6 内存控制器 (共 384 位)</li>
+</ul>
+<p>单个 SM 的结构图如下：</p>
+<p><img src="/source/images/GPU/NV-Turing-SM.png" alt="NV-Turing-SM"></p>
+<p>每个 SM 包含：</p>
+<ul>
+<li>64 CUDA 核</li>
+<li>8 Tensor 核</li>
+<li>256 KB 寄存器文件</li>
+</ul>
+<p>TU102 GPU 芯片实物图：</p>
+<p><img src="/source/images/GPU/NV-Turing-physical.png" alt="NV-Turing-physical"></p>
+<h3 id="GPU-架构共性"><a href="#GPU-架构共性" class="headerlink" title="GPU 架构共性"></a>GPU 架构共性</h3><p>纵观上一节的所有 GPU 架构，可以发现它们虽然有所差异，但存在着很多相同的概念和部件：</p>
+<ul>
+<li>GPC</li>
+<li>TPC</li>
+<li>Thread</li>
+<li>SM、SMX、SMM</li>
+<li>Warp</li>
+<li>SP</li>
+<li>Core</li>
+<li>ALU</li>
+<li>FPU</li>
+<li>SFU</li>
+<li>ROP</li>
+<li>Load/Store Unit</li>
+<li>L1 Cache</li>
+<li>L2 Cache</li>
+<li>Memory</li>
+<li>Register File</li>
+</ul>
+<p>以上各个部件的用途将在下一章详细阐述。</p>
+<p>GPU 为什么会有这么多层级且有这么多雷同的部件？答案是 GPU 的任务是天然并行的，现代 GPU 的架构皆是以高度并行能力而设计的。</p>
+<h2 id="GPU-运行机制"><a href="#GPU-运行机制" class="headerlink" title="GPU 运行机制"></a>GPU 运行机制</h2><h3 id="渲染总览"><a href="#渲染总览" class="headerlink" title="渲染总览"></a>渲染总览</h3><p>由上一章可得知，现代 GPU 有着相似的结构，有很多相同的部件，在运行机制上，也有很多共同点。下面是 Fermi 架构的运行机制总览图：</p>
+<p><img src="/source/images/GPU/Fermi-run.png" alt="Fermi-run"></p>
+<p>从 Fermi 开始 NVIDIA 使用类似的原理架构，使用一个 Giga Thread Engine 来管理所有正在进行的工作，GPU 被划分成多个 GPCs (Graphics Processing Cluster)，每个 GPC 拥有多个 SM（SMX、SMM）和一个光栅化引擎 (Raster Engine)，它们其中有很多的连接，最显著的是 Crossbar，它可以连接 GPCs 和其它功能性模块（例如 ROP 或其他子系统）。</p>
+<p>程序员编写的 shader 是在 SM 上完成的。每个 SM 包含许多为线程执行数学运算的 Core （核心）。例如，一个线程可以是顶点或像素着色器调用。这些 Core 和其它单元由 Warp Scheduler 驱动，Warp Scheduler 管理一组 32 个线程作为 Warp （线程束）并将要执行的指令移交给 Dispatch Units。</p>
+<p>GPU 中实际有多少这些单元（每个 GPC 有多少个 SM，多少个 GPC …）取决于芯片配置本身。例如，GM204 有 4 个 GPC，每个 GPC 有 4 个 SM，但 Tegra X1 有 1 个 GPC 和 2 个 SM，它们均采用 Maxwell 设计。 SM 设计本身（内核数量，指令单位，调度程序 …）也随着时间的推移而发生变化，并帮助使芯片变得如此高效，可以从高端台式机扩展到笔记本电脑移动。</p>
+<p><img src="/source/images/GPU/Fermi-SM.png" alt="Fermi-SM"></p>
+<p>如上图，对于某些 GPU（如 Fermi 部分型号）的单个 SM，包含：</p>
+<ul>
+<li>32 个运算核心 （Core，也叫流处理器 Stream Processor）</li>
+<li>16 个 LD/ST（load/store）模块来加载和存储数据</li>
+<li>4 个 SFU（Special function units）执行特殊数学运算（sin、cos、log 等）</li>
+<li>128KB 寄存器（Register File）</li>
+<li>64KB L1 缓存</li>
+<li>全局内存缓存（Uniform Cache）</li>
+<li>纹理读取单元</li>
+<li>纹理缓存（Texture Cache）</li>
+<li>PolyMorph Engine：多边形引擎负责属性装配（attribute Setup）、顶点拉取(VertexFetch)、曲面细分、栅格化（这个模块可以理解专门处理顶点相关的东西）。</li>
+<li>2 个 Warp Schedulers：这个模块负责 warp 调度，一个 warp 由 32 个线程组成，warp 调度器的指令通过 Dispatch Units 送到 Core 执行。</li>
+<li>指令缓存（Instruction Cache）</li>
+<li>内部链接网络（Interconnect Network）</li>
+</ul>
+<h3 id="GPU-运行逻辑"><a href="#GPU-运行逻辑" class="headerlink" title="GPU 运行逻辑"></a>GPU 运行逻辑</h3><p>了解上一节的部件和概念之后，可以深入阐述 GPU 的渲染过程和步骤。下面将以 Fermi 家族的 SM 为例，进行逻辑管线的详细说明。</p>
+<p><img src="/source/images/GPU/Fermi-logic.png" alt="Fermi-logic"></p>
+<ol>
+<li><p>程序通过图形 API(DX、GL、WEBGL)发出 drawcall 指令，指令会被推送到驱动程序，驱动会检查指令的合法性，然后会把指令放到 GPU 可以读取的 Pushbuffer 中。</p>
+</li>
+<li><p>经过一段时间或者显式调用 flush 指令后，驱动程序把 Pushbuffer 的内容发送给 GPU，GPU 通过主机接口（Host Interface）接受这些命令，并通过前端（Front End）处理这些命令。</p>
+</li>
+<li><p>在图元分配器(Primitive Distributor)中开始工作分配，处理 indexbuffer 中的顶点产生三角形分成批次(batches)，然后发送给多个 PGCs。这一步的理解就是提交上来 n 个三角形，分配给这几个 PGC 同时处理。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/Fermi-SM-run.png" alt="Fermi-SM-run"></p>
+<ol start="4">
+<li><p>在 GPC 中，每个 SM 中的 Poly Morph Engine 负责通过三角形索引(triangle indices)取出三角形的数据(vertex data)，即图中的 Vertex Fetch 模块。</p>
+</li>
+<li><p>在获取数据之后，在 SM 中以 32 个线程为一组的线程束(Warp)来调度，来开始处理顶点数据。Warp 是典型的单指令多线程（SIMT，SIMD 单指令多数据的升级）的实现，也就是 32 个线程同时执行的指令是一模一样的，只是线程数据不一样，这样的好处就是一个 warp 只需要一个套逻辑对指令进行解码和执行就可以了，芯片可以做的更小更快，之所以可以这么做是由于 GPU 需要处理的任务是天然并行的。</p>
+</li>
+<li><p>SM 的 warp 调度器会按照顺序分发指令给整个 warp，单个 warp 中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked out)。被遮掩的原因有很多，例如当前的指令是 if(true)的分支，但是当前线程的数据的条件是 false，或者循环的次数不一样（比如 for 循环次数 n 不是常量，或被 break 提前终止了但是别的还在走），因此在 shader 中的分支会显著增加时间消耗，在一个 warp 中的分支除非 32 个线程都走到 if 或者 else 里面，否则相当于所有的分支都走了一遍，线程不能独立执行指令而是以 warp 为单位，而这些 warp 之间才是独立的。</p>
+</li>
+<li><p>warp 中的指令可以被一次完成，也可能经过多次调度，例如通常 SM 中的 LD/ST(加载存取)单元数量明显少于基础数学操作单元。</p>
+</li>
+<li><p>由于某些指令比其他指令需要更长的时间才能完成，特别是内存加载，warp 调度器可能会简单地切换到另一个没有内存等待的 warp，这是 GPU 如何克服内存读取延迟的关键，只是简单地切换活动线程组。为了使这种切换非常快，调度器管理的所有 warp 在寄存器文件中都有自己的寄存器。这里就会有个矛盾产生，shader 需要越多的寄存器，就会给 warp 留下越少的空间，就会产生越少的 warp，这时候在碰到内存延迟的时候就会只是等待，而没有可以运行的 warp 可以切换。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-store.png" alt="GPU-store"></p>
+<ol start="9">
+<li>一旦 warp 完成了 vertex-shader 的所有指令，运算结果会被 Viewport Transform 模块处理，三角形会被裁剪然后准备栅格化，GPU 会使用 L1 和 L2 缓存来进行 vertex-shader 和 pixel-shader 的数据通信。</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-triangle.png" alt="GPU-triangle"></p>
+<ol start="10">
+<li>接下来这些三角形将被分割，再分配给多个 GPC，三角形的范围决定着它将被分配到哪个光栅引擎(raster engines)，每个 raster engines 覆盖了多个屏幕上的 tile，这等于把三角形的渲染分配到多个 tile 上面。也就是像素阶段就把按三角形划分变成了按显示的像素划分了。</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-distribution-crossbar.png" alt="GPU-distribution-crossbar"></p>
+<ol start="11">
+<li><p>SM 上的 Attribute Setup 保证了从 vertex-shader 来的数据经过插值后是 pixel-shade 是可读的。</p>
+</li>
+<li><p>GPC 上的光栅引擎(raster engines)在它接收到的三角形上工作，来负责这些这些三角形的像素信息的生成（同时会处理裁剪 Clipping、背面剔除和 Early-Z 剔除）。</p>
+</li>
+<li><p>32 个像素线程将被分成一组，或者说 8 个 2x2 的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM 中的 warp 调度器会管理像素着色器的任务。</p>
+</li>
+<li><p>接下来的阶段就和 vertex-shader 中的逻辑步骤完全一样，但是变成了在像素着色器线程中执行。由于不耗费任何性能可以获取一个像素内的值，导致锁步执行非常便利，所有的线程可以保证所有的指令可以在同一点。</p>
+</li>
+</ol>
+<p><img src="/source/images/GPU/GPU-ROP.png" alt="GPU-ROP"></p>
+<ol>
+<li> 最后一步，现在像素着色器已经完成了颜色的计算还有深度值的计算，在这个点上，我们必须考虑三角形的原始 api 顺序，然后才将数据移交给 ROP(render output unit，渲染输入单元)，一个 ROP 内部有很多 ROP 单元，在 ROP 单元中处理深度测试，和 framebuffer 的混合，深度和颜色的设置必须是原子操作，否则两个不同的三角形在同一个像素点就会有冲突和错误。</li>
+</ol>
+<h3 id="GPU-技术要点"><a href="#GPU-技术要点" class="headerlink" title="GPU 技术要点"></a>GPU 技术要点</h3><h4 id="SIMD-amp-SIMT"><a href="#SIMD-amp-SIMT" class="headerlink" title="SIMD &amp; SIMT"></a>SIMD &amp; SIMT</h4><p><strong>SIMD</strong>（Single Instruction Multiple Data）是单指令多数据，在 GPU 的 ALU 单元内，一条指令可以处理多维向量（一般是 4D）的数据。比如，有以下 shader 指令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float4 c = a + b; <span class="comment">// a, b都是float4类型</span></span><br></pre></td></tr></table></figure>
+<p>对于没有 SIMD 的处理单元，需要 4 条指令将 4 个 float 数值相加，汇编伪代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ADD c.x, a.x, b.x</span><br><span class="line">ADD c.y, a.y, b.y</span><br><span class="line">ADD c.z, a.z, b.z</span><br><span class="line">ADD c.w, a.w, b.w</span><br></pre></td></tr></table></figure>
+<p>但有了 SIMD 技术，只需一条指令即可处理完：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SIMD_ADD c, a, b</span><br></pre></td></tr></table></figure>
+<p><img src="/source/images/GPU/SIMD.png"></p>
+<p><strong>SIMT</strong>（Single Instruction Multiple Threads，单指令多线程）是 SIMD 的升级版，可对 GPU 中单个 SM 中的多个 Core 同时处理同一指令，并且每个 Core 存取的数据可以是不同的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SIMT_ADD c, a, b</span><br></pre></td></tr></table></figure>
+<p>上述指令会被同时送入在单个 SM 中被编组的所有 Core 中，同时执行运算，但<code>a</code>、<code>b</code> 、<code>c</code>的值可以不一样：</p>
+<blockquote>
+<p>这里应该指的是可以是不同类型</p>
+</blockquote>
+<p><img src="/source/images/GPU/SIMT.png"></p>
+<h4 id="co-issue"><a href="#co-issue" class="headerlink" title="co-issue"></a>co-issue</h4><p><strong>co-issue</strong>是为了解决 SIMD 运算单元无法充分利用的问题。例如下图，由于 float 数量的不同，ALU 利用率从 100%依次下降为 75%、50%、25%。</p>
+<p><img src="/source/images/GPU/coissue-problem.png"></p>
+<p>为了解决着色器在低维向量的利用率低的问题，可以通过合并 1D 与 3D 或 2D 与 2D 的指令。例如下图，<code>DP3</code>指令用了 3D 数据，<code>ADD</code>指令只有 1D 数据，co-issue 会自动将它们合并，在同一个 ALU 只需一个指令周期即可执行完。</p>
+<p><img src="/source/images/GPU/can-coissue.png"></p>
+<p>但是，对于向量运算单元（Vector ALU），如果其中一个变量既是操作数又是存储数的情况，无法启用 co-issue 技术：</p>
+<p><img src="/source/images/GPU/cannot-coissue.png"></p>
+<p>于是<strong>标量指令着色器</strong>（Scalar Instruction Shader）应运而生，它可以有效地组合任何向量，开启 co-issue 技术，充分发挥 SIMD 的优势。</p>
+<h4 id="if-else-语句"><a href="#if-else-语句" class="headerlink" title="if-else 语句"></a><code>if-else</code> 语句</h4><p><img src="../images/GPU/ifelse.png"></p>
+<p>如上图，SM 中有 8 个 ALU（Core），由于 SIMD 的特性，每个 ALU 的数据不一样，导致 <code>if-else</code> 语句在某些 ALU 中执行的是<code>true</code>分支（黄色），有些 ALU 执行的是<code>false</code>分支（灰蓝色），这样导致很多 ALU 的执行周期被浪费掉了（即 masked out），拉长了整个执行周期。最坏的情况，同一个 SM 中只有 1/8（8 是同一个 SM 的线程数，不同架构的 GPU 有所不同）的利用率。</p>
+<p>同样，for 循环也会导致类似的情形，例如以下 shader 代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> count, <span class="keyword">int</span> breakNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;count; ++i)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> (i == breakNum)</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="comment">// do something</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于每个 ALU 的<code>count</code>不一样，加上有<code>break</code>分支，导致最快执行完 shader 的 ALU 可能是最慢的 N 分之一的时间，但由于 SIMD 的特性，最快的那个 ALU 依然要等待最慢的 ALU 执行完毕，才能接下一组指令的活！也就白白浪费了很多时间周期。</p>
+<h4 id="Early-Z"><a href="#Early-Z" class="headerlink" title="Early-Z"></a>Early-Z</h4><p>早期 GPU 的渲染管线的深度测试是在像素着色器之后才执行（下图），这样会造成很多本不可见的像素执行了耗性能的像素着色器计算。</p>
+<p><img src="../images/GPU/earlyz1.png"></p>
+<p>后来，为了减少像素着色器的额外消耗，将深度测试提至像素着色器之前（下图），这就是 Early-Z 技术的由来。</p>
+<p><img src="../images/GPU/earlyz2.png"></p>
+<p>Early-Z 技术可以将很多无效的像素提前剔除，避免它们进入耗时严重的像素着色器。Early-Z 剔除的最小单位不是 1 像素，而是像素块（pixel quad，2x2 个像素。</p>
+<p>但是，以下情况会导致 Early-Z 失效：</p>
+<p>开启 Alpha Test：由于 Alpha Test 需要在像素着色器后面的 Alpha Test 阶段比较，所以无法在像素着色器之前就决定该像素是否被剔除。</p>
+<ul>
+<li>开启 Alpha Blend：启用了 Alpha 混合的像素很多需要与 frame buffer 做混合，无法执行深度测试，也就无法利用 Early-Z 技术。</li>
+<li>开启 Tex Kill：即在 shader 代码中有像素摒弃指令（DX 的 discard，OpenGL 的 clip）。</li>
+<li>关闭深度测试。Early-Z 是建立在深度测试看开启的条件下，如果关闭了深度测试，也就无法启用 Early-Z 技术。</li>
+<li>开启 Multi-Sampling：多采样会影响周边像素，而 Early-Z 阶段无法得知周边像素是否被裁剪，故无法提前剔除。</li>
+<li>以及其它任何导致需要混合后面颜色的操作。</li>
+</ul>
+<p>此外，Early-Z 技术会导致一个问题：深度数据冲突（depth data hazard）。</p>
+<p><img src="../images/GPU/earlyz-hazard.png"></p>
+<p>例子要结合上图，假设数值深度值 5 已经经过 Early-Z 即将写入 Frame Buffer，而深度值 10 刚好处于 Early-Z 阶段，读取并对比当前缓存的深度值 15，结果就是 10 通过了 Early-Z 测试，会覆盖掉比自己小的深度值 5，最终 frame buffer 的深度值是错误的结果。</p>
+<p>避免深度数据冲突的方法之一是在写入深度值之前，再次与 frame buffer 的值进行对比：</p>
+<p><img src="../images/GPU/earlyz-buffer.png"></p>
+<h4 id="统一着色器架构（Unified-shader-Architecture）"><a href="#统一着色器架构（Unified-shader-Architecture）" class="headerlink" title="统一着色器架构（Unified shader Architecture）"></a>统一着色器架构（Unified shader Architecture）</h4><p>在早期的 GPU，顶点着色器和像素着色器的硬件结构是独立的，它们各有各的寄存器、运算单元等部件。这样很多时候，会造成顶点着色器与像素着色器之间任务的不平衡。对于顶点数量多的任务，像素着色器空闲状态多；对于像素多的任务，顶点着色器的空闲状态多（下图）。</p>
+<p><img src="../images/GPU/vp-problem.png"></p>
+<p>于是，为了解决 VS 和 PS 之间的不平衡，引入了统一着色器架构（Unified shader Architecture）。用了此架构的 GPU，VS 和 PS 用的都是相同的 Core。也就是，同一个 Core 既可以是 VS 又可以是 PS。</p>
+<p><img src="../images/GPU/unified-arch.png"></p>
+<p>这样就解决了不同类型着色器之间的不平衡问题，还可以减少 GPU 的硬件单元，压缩物理尺寸和耗电量。此外，VS、PS 可还可以和其它着色器（几何、曲面、计算）统一为一体。</p>
+<p><img src="../images/GPU/unified-pipe.png"></p>
+<h4 id="像素块（Pixel-Quad）"><a href="#像素块（Pixel-Quad）" class="headerlink" title="像素块（Pixel Quad）"></a>像素块（Pixel Quad）</h4><p>上一节步骤 13 提到：</p>
+<blockquote>
+<p>32 个像素线程将被分成一组，或者说 8 个 2x2 的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM 中的 warp 调度器会管理像素着色器的任务。</p>
+</blockquote>
+<p>也就是说，在像素着色器中，会将相邻的四个像素作为不可分隔的一组，送入同一个 SM 内 4 个不同的 Core。</p>
+<blockquote>
+<p>为什么像素着色器处理的最小单元是 2x2 的像素块？<br>笔者推测有以下原因：</p>
+<ol>
+<li>简化和加速像素分派的工作。</li>
+<li>精简 SM 的架构，减少硬件单元数量和尺寸。</li>
+<li>降低功耗，提高效能比。</li>
+<li>无效像素虽然不会被存储结果，但可辅助有效像素求导函数。详见 4.6 利用扩展例证。</li>
+</ol>
+</blockquote>
+<p>这种设计虽然有其优势，但同时，也会激化过绘制（Over Draw）的情况，损耗额外的性能。比如下图中，白色的三角形只占用了 3 个像素（绿色），按我们普通的思维，只需要 3 个 Core 绘制 3 次就可以了。</p>
+<p><img src="../images/GPU/pq3.png"></p>
+<p>但是，由于上面的 3 个像素分别占据了不同的像素块（橙色分隔），实际上需要占用 12 个 Core 绘制 12 次（下图）。</p>
+<p><img src="../images/GPU/pq12.png"></p>
+<p>这就会额外消耗 300%的硬件性能，导致了更加严重的过绘制情况。</p>
+<p>更多详情可以观看虚幻官方的视频教学：实时渲染深入探究。</p>
+<h2 id="GPU-资源机制"><a href="#GPU-资源机制" class="headerlink" title="GPU 资源机制"></a>GPU 资源机制</h2><p>本节将阐述 GPU 的内存访问、资源管理等机制。</p>
+<h3 id="内存架构"><a href="#内存架构" class="headerlink" title="内存架构"></a>内存架构</h3><p>部分架构的 GPU 与 CPU 类似，也有多级缓存结构：寄存器、L1 缓存、L2 缓存、GPU 显存、系统显存。</p>
+<p><img src="../images/GPU/cpu-mem.png"></p>
+<p>它们的存取速度从寄存器到系统内存依次变慢：</p>
+<table>
+<thead>
+<tr>
+<th>存储类型</th>
+<th>寄存器</th>
+<th>共享内存</th>
+<th>L1 缓存</th>
+<th>L2 缓存</th>
+<th>纹理、常量缓存</th>
+<th>全局内存</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>访问周期</td>
+<td>1</td>
+<td>1~32</td>
+<td>1~32</td>
+<td>32~64</td>
+<td>400~600</td>
+<td>400~600</td>
+</tr>
+</tbody></table>
+<p>由此可见，shader 直接访问寄存器、L1、L2 缓存还是比较快的，但访问纹理、常量缓存和全局内存非常慢，会造成很高的延迟。</p>
+<p>上面的多级缓存结构可被称为“CPU-Style”，还存在 GPU-Style 的内存架构：</p>
+<p><img src="../images/GPU/gpu-mem.png"></p>
+<p>这种架构的特点是 ALU 多，GPU 上下文（Context）多，吞吐量高，依赖<strong>高带宽与系统内存交换数据</strong>。</p>
+<h3 id="GPU-Context-和延迟"><a href="#GPU-Context-和延迟" class="headerlink" title="GPU Context 和延迟"></a>GPU Context 和延迟</h3><p>由于 SIMT 技术的引入，导致很多同一个 SM 内的很多 Core 并不是独立的，当它们当中有部分 Core 需要访问到纹理、常量缓存和全局内存时，就会导致非常大的卡顿（Stall）。</p>
+<p>例如下图中，有 4 组上下文（Context），它们共用同一组运算单元 ALU。</p>
+<p><img src="../images/GPU/context-s1.png"></p>
+<p>假设第一组 Context 需要访问缓存或内存，会导致 2~3 个周期的延迟，此时调度器会激活第二组 Context 以利用 ALU：</p>
+<p><img src="../images/GPU/context-s2.png"></p>
+<p>当第二组 Context 访问缓存或内存又卡住，会依次激活第三、第四组 Context，直到第一组 Context 恢复运行或所有都被激活：</p>
+<p><img src="../images/GPU/context-s3.png"></p>
+<p>延迟的后果是每组 Context 的总体执行时间被拉长了：</p>
+<p><img src="../images/GPU/context-s4.png"></p>
+<p>但是，越多 Context 可用就越可以提升运算单元的吞吐量，比如下图的 18 组 Context 的架构可以最大化地提升吞吐量：</p>
+<p><img src="../images/GPU/context.png"></p>
+<h3 id="CPU-GPU-异构系统"><a href="#CPU-GPU-异构系统" class="headerlink" title="CPU-GPU 异构系统"></a>CPU-GPU 异构系统</h3><p>根据 CPU 和 GPU 是否共享内存，可分为两种类型的 CPU-GPU 架构：</p>
+<p><img src="../images/GPU/cpu-gpu.png"></p>
+<p>上图左是<strong>分离式架构</strong>，CPU 和 GPU 各自有独立的缓存和内存，它们通过 PCI-e 等总线通讯。这种结构的缺点在于 PCI-e 相对于两者具有低带宽和高延迟，数据的传输成了其中的性能瓶颈。目前使用非常广泛，如 PC、智能手机等。</p>
+<p>上图右是<strong>耦合式架构</strong>，CPU 和 GPU 共享内存和缓存。AMD 的 APU 采用的就是这种结构，目前主要使用在游戏主机中，如 PS4。</p>
+<p>在存储管理方面，分离式结构中 CPU 和 GPU 各自拥有独立的内存，两者共享一套虚拟地址空间，必要时会进行内存拷贝。对于耦合式结构，GPU 没有独立的内存，与 GPU 共享系统内存，由 MMU 进行存储管理。</p>
+<h3 id="GPU-资源管理模型"><a href="#GPU-资源管理模型" class="headerlink" title="GPU 资源管理模型"></a>GPU 资源管理模型</h3><p>下图是分离式架构的资源管理模型：</p>
+<p><img src="../images/GPU/GPU-resource.png"></p>
+<ul>
+<li><p>MMIO（Memory Mapped IO）</p>
+<ul>
+<li>CPU 与 GPU 的交流就是通过 MMIO 进行的。CPU 通过 MMIO 访问 GPU 的寄存器状态。</li>
+<li>DMA 传输大量的数据就是通过 MMIO 进行命令控制的。</li>
+<li>I/O 端口可用于间接访问 MMIO 区域，像 Nouveau 等开源软件从来不访问它。</li>
+</ul>
+</li>
+<li><p>GPU Context</p>
+<ul>
+<li>GPU Context 代表了 GPU 计算的状态。</li>
+<li>在 GPU 中拥有自己的虚拟地址。</li>
+<li>GPU 中可以并存多个活跃态下的 Context。</li>
+</ul>
+</li>
+<li><p>GPU Channel</p>
+<ul>
+<li>任何命令都是由 CPU 发出。</li>
+<li>命令流（command stream）被提交到硬件单元，也就是 GPU Channel。</li>
+<li>每个 GPU Channel 关联一个 context，而一个 GPU Context 可以有多个 GPU channel。</li>
+<li>每个 GPU Context 包含相关 channel 的 GPU Channel Descriptors ，每个 Descriptor 都是 GPU 内存中的一个对象。</li>
+<li>每个 GPU Channel Descriptor 存储了 Channel 的设置，其中就包括 Page Table 。</li>
+<li>每个 GPU Channel 在 GPU 内存中分配了唯一的命令缓存，这通过 MMIO 对 CPU 可见。</li>
+<li>GPU Context Switching 和命令执行都在 GPU 硬件内部调度。</li>
+</ul>
+</li>
+<li><p>GPU Page Table</p>
+<ul>
+<li>GPU Context 在虚拟基地空间由 Page Table 隔离其它的 Context 。</li>
+<li>GPU Page Table 隔离 CPU Page Table，位于 GPU 内存中。</li>
+<li>GPU Page Table 的物理地址位于 GPU Channel Descriptor 中。</li>
+<li>GPU Page Table 不仅仅将 GPU 虚拟地址转换成 GPU 内存的物理地址，也可以转换成 CPU 的物理地址。因此，GPU Page Table 可以将 GPU 虚拟地址和 CPU 内存地址统一到 GPU 统一虚拟地址空间来。</li>
+</ul>
+</li>
+<li><p>PCI-e BAR</p>
+<ul>
+<li>GPU 设备通过 PCI-e 总线接入到主机上。 Base Address Registers(BARs) 是 MMIO 的窗口，在 GPU 启动时候配置。</li>
+<li>GPU 的控制寄存器和内存都映射到了 BARs 中。</li>
+<li>GPU 设备内存通过映射的 MMIO 窗口去配置 GPU 和访问 GPU 内存。</li>
+</ul>
+</li>
+<li><p>PFIFO Engine</p>
+<ul>
+<li>PFIFO 是 GPU 命令提交通过的一个特殊的部件。</li>
+<li>PFIFO 维护了一些独立命令队列，也就是 Channel。</li>
+<li>此命令队列是 Ring Buffer，有 PUT 和 GET 的指针。</li>
+<li>所有访问 Channel 控制区域的执行指令都被 PFIFO 拦截下来。</li>
+<li>GPU 驱动使用 Channel Descriptor 来存储相关的 Channel 设定。</li>
+<li>PFIFO 将读取的命令转交给 PGRAPH Engine。</li>
+</ul>
+</li>
+<li><p>BO</p>
+<ul>
+<li>Buffer Object (BO)，内存的一块(Block)，能够用于存储纹理（Texture）、渲染目标（Render Target）、着色代码（shader code）等等。</li>
+<li>Nouveau 和 Gdev 经常使用 BO。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Nouveau 是一个自由及开放源代码显卡驱动程序，是为 NVidia 的显卡所编写。<br>Gdev 是一套丰富的开源软件，用于 NVIDIA 的 GPGPU 技术，包括设备驱动程序。</p>
+</blockquote>
+<h3 id="CPU-GPU-数据流"><a href="#CPU-GPU-数据流" class="headerlink" title="CPU-GPU 数据流"></a>CPU-GPU 数据流</h3><p>下图是分离式架构的 CPU-GPU 的数据流程图：</p>
+<p><img src="../images/GPU/dataflow.png"></p>
+<ol>
+<li>将主存的处理数据复制到显存中。</li>
+<li>CPU 指令驱动 GPU。</li>
+<li>GPU 中的每个运算单元并行处理。此步会从显存存取数据。</li>
+<li>GPU 将显存结果传回主存。</li>
+</ol>
+<h3 id="显像机制"><a href="#显像机制" class="headerlink" title="显像机制"></a>显像机制</h3><ul>
+<li>水平和垂直同步信号</li>
+</ul>
+<p>在早期的 CRT 显示器，电子枪从上到下逐行扫描，扫描完成后显示器就呈现一帧画面。然后电子枪回到初始位置进行下一次扫描。为了同步显示器的显示过程和系统的视频控制器，显示器会用硬件时钟产生一系列的定时信号。</p>
+<p><img src="../images/GPU/elecgun.png"></p>
+<p>当电子枪换行进行扫描时，显示器会发出一个水平同步信号（horizonal synchronization），简称 HSync</p>
+<p>当一帧画面绘制完成后，电子枪回复到原位，准备画下一帧前，显示器会发出一个垂直同步信号（vertical synchronization），简称 VSync。</p>
+<p>显示器通常以固定频率进行刷新，这个刷新率就是 VSync 信号产生的频率。虽然现在的显示器基本都是液晶显示屏了，但其原理基本一致。</p>
+<p>CPU 将计算好显示内容提交至 GPU，GPU 渲染完成后将渲染结果存入帧缓冲区，视频控制器会按照 VSync 信号逐帧读取帧缓冲区的数据，经过数据转换后最终由显示器进行显示。</p>
+<p><img src="../images/GPU/hsync.png"></p>
+<ul>
+<li>双缓冲</li>
+</ul>
+<p>在单缓冲下，帧缓冲区的读取和刷新都都会有比较大的效率问题，经常会出现相互等待的情况，导致帧率下降。</p>
+<p>为了解决效率问题，GPU 通常会引入两个缓冲区，即<strong>双缓冲机制</strong>。在这种情况下，GPU 会预先渲染一帧放入一个缓冲区中，用于视频控制器的读取。当下一帧渲染完毕后，GPU 会直接把视频控制器的指针指向第二个缓冲器。</p>
+<p><img src="../images/GPU/double-buffer.png"></p>
+<ul>
+<li>垂直同步</li>
+</ul>
+<p>双缓冲虽然能解决效率问题，但会引入一个新的问题。当视频控制器还未读取完成时，即屏幕内容刚显示一半时，GPU 将新的一帧内容提交到帧缓冲区并把两个缓冲区进行交换后，视频控制器就会把新的一帧数据的下半段显示到屏幕上，造成画面撕裂现象：</p>
+<p><img src="../images/GPU/vsyncoff.jpg"></p>
+<p>为了解决这个问题，GPU 通常有一个机制叫做垂直同步（简写也是 V-Sync），当开启垂直同步后，GPU 会等待显示器的 VSync 信号发出后，才进行新的一帧渲染和缓冲区更新。这样能解决画面撕裂现象，也增加了画面流畅度，但需要消费更多的计算资源，也会带来部分延迟。</p>
+<h2 id="Shader-运行机制"><a href="#Shader-运行机制" class="headerlink" title="Shader 运行机制"></a>Shader 运行机制</h2><p>Shader 代码也跟传统的 C++等语言类似，需要将面向人类的高级语言（GLSL、HLSL、CGSL）通过编译器转成面向机器的二进制指令，二进制指令可转译成汇编代码，以便技术人员查阅和调试。</p>
+<p><img src="../images/GPU/highlevelcode.png"></p>
+<p>由高级语言编译成汇编指令的过程通常是在离线阶段执行，以减轻运行时的消耗。</p>
+<p>在执行阶段，CPU 端将 shader 二进制指令经由 PCI-e 推送到 GPU 端，GPU 在执行代码时，会用 Context 将指令分成若干 Channel 推送到各个 Core 的存储空间。</p>
+<p>对现代 GPU 而言，可编程的阶段越来越多，包含但不限于：</p>
+<ul>
+<li>顶点着色器（Vertex Shader）</li>
+<li>曲面细分控制着色器（Tessellation Control Shader）</li>
+<li>几何着色器（Geometry Shader）</li>
+<li>像素/片元着色器（Fragment Shader）</li>
+<li>计算着色器（Compute Shader）</li>
+<li>…</li>
+</ul>
+<p><img src="../images/GPU/gpu-program.png"></p>
+<p>这些着色器形成流水线式的并行化的渲染管线。下面将配合具体的例子说明。</p>
+<p>下段是计算漫反射的经典代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sampler mySamp;</span><br><span class="line">Texture2D&lt;float3&gt; myTex;</span><br><span class="line">float3 lightDir;</span><br><span class="line"></span><br><span class="line"><span class="function">float4 <span class="title">diffuseShader</span><span class="params">(float3 norm, float2 uv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  float3 kd;</span><br><span class="line">  kd = myTex.Sample(mySamp, uv);</span><br><span class="line">  kd *= clamp( dot(lightDir, norm), <span class="number">0.0</span>, <span class="number">1.0</span>);</span><br><span class="line">  <span class="keyword">return</span> float4(kd, <span class="number">1.0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经过编译后成为汇编代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;diffuseShader&gt;:</span><br><span class="line">sample r0, v4, t0, s0</span><br><span class="line">mul    r3, v0, cb0[0]</span><br><span class="line">madd   r3, v1, cb0[1], r3</span><br><span class="line">madd   r3, v2, cb0[2], r3</span><br><span class="line">clmp   r3, r3, l(0.0), l(1.0)</span><br><span class="line">mul    o0, r0, r3</span><br><span class="line">mul    o1, r1, r3</span><br><span class="line">mul    o2, r2, r3</span><br><span class="line">mov    o3, l(1.0)</span><br></pre></td></tr></table></figure>
+<p>在执行阶段，以上汇编代码会被 GPU 推送到执行上下文（Execution Context），然后 ALU 会逐条获取（Detch）、解码（Decode）汇编指令，并执行它们。</p>
+<p><img src="../images/GPU/pipeline.png"></p>
+<p>以上示例图只是单个 ALU 的执行情况，实际上，GPU 有几十甚至上百个执行单元在同时执行 shader 指令：</p>
+<p><img src="../images/GPU/multicore.png"></p>
+<p>对于 SIMT 架构的 GPU，汇编指令有所不同，变成了 SIMT 特定指令代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;VEC8_diffuseShader&gt;:</span><br><span class="line">VEC8_sample vec_r0, vec_v4, t0, vec_s0</span><br><span class="line">VEC8_mul    vec_r3, vec_v0, cb0[0]</span><br><span class="line">VEC8_madd   vec_r3, vec_v1, cb0[1], vec_r3</span><br><span class="line">VEC8_madd   vec_r3, vec_v2, cb0[2], vec_r3</span><br><span class="line">VEC8_clmp   vec_r3, vec_r3, l(0.0), l(1.0)</span><br><span class="line">VEC8_mul    vec_o0, vec_r0, vec_r3</span><br><span class="line">VEC8_mul    vec_o1, vec_r1, vec_r3</span><br><span class="line">VEC8_mul    vec_o2, vec_r2, vec_r3</span><br><span class="line">VEC8_mov    o3, l(1.0)</span><br></pre></td></tr></table></figure>
+<p>并且 Context 以 Core 为单位组成共享的结构，同一个 Core 的多个 ALU 共享一组 Context：</p>
+<p><img src="../images/GPU/SIMT-ass.png"></p>
+<p>如果有多个 Core，就会有更多的 ALU 同时参与 shader 计算，每个 Core 执行的数据是不一样的，可能是顶点、图元、像素等任何数据：</p>
+<p><img src="../images/GPU/multi-alu.png"></p>
+<h2 id="利用扩展例证"><a href="#利用扩展例证" class="headerlink" title="利用扩展例证"></a>利用扩展例证</h2><p>略，详见参考文献</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="CPU-vs-GPU"><a href="#CPU-vs-GPU" class="headerlink" title="CPU vs GPU"></a>CPU vs GPU</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>CPU</th>
+<th>GPU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟容忍度</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>并行目标</td>
+<td>任务（Task）</td>
+<td>数据（Data）</td>
+</tr>
+<tr>
+<td>核心架构</td>
+<td>多线程核心</td>
+<td>SIMT 核心</td>
+</tr>
+<tr>
+<td>线程数量级别</td>
+<td>10</td>
+<td>10000</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>缓存需求量</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>线程独立性</td>
+<td>低</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<p>它们之间的差异（缓存、核心数量、内存、线程数等）可用下图展示出来：</p>
+<p><img src="../images/GPU/cpuvsgpu.png"></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://www.cnoblogs.com/timlly/p/11471507.html">https://www.cnoblogs.com/timlly/p/11471507.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/" rel="tag"># 体系结构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021-04-06-the-zen-of-python/" rel="prev" title="the Zen of Python">
+      <i class="fa fa-chevron-left"></i> the Zen of Python
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021-04-09-huawei-oppo/" rel="next" title="huawei-oppo">
+      huawei-oppo <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#History"><span class="nav-number">1.</span> <span class="nav-text">History</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NV-GPU-%E6%9E%B6%E6%9E%84%E5%8F%91%E5%B1%95"><span class="nav-number">1.1.</span> <span class="nav-text">NV GPU 架构发展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-%E5%8A%9F%E8%83%BD"><span class="nav-number">1.2.</span> <span class="nav-text">GPU 功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">物理架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NV-Tesla"><span class="nav-number">2.1.</span> <span class="nav-text">NV Tesla</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NV-Fermi"><span class="nav-number">2.2.</span> <span class="nav-text">NV Fermi</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NV-Maxwell"><span class="nav-number">2.3.</span> <span class="nav-text">NV Maxwell</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NV-Kepler"><span class="nav-number">3.</span> <span class="nav-text">NV Kepler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NV-Turing"><span class="nav-number">4.</span> <span class="nav-text">NV Turing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-%E6%9E%B6%E6%9E%84%E5%85%B1%E6%80%A7"><span class="nav-number">4.1.</span> <span class="nav-text">GPU 架构共性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPU-%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6"><span class="nav-number">5.</span> <span class="nav-text">GPU 运行机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93%E6%80%BB%E8%A7%88"><span class="nav-number">5.1.</span> <span class="nav-text">渲染总览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91"><span class="nav-number">5.2.</span> <span class="nav-text">GPU 运行逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-%E6%8A%80%E6%9C%AF%E8%A6%81%E7%82%B9"><span class="nav-number">5.3.</span> <span class="nav-text">GPU 技术要点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SIMD-amp-SIMT"><span class="nav-number">5.3.1.</span> <span class="nav-text">SIMD &amp; SIMT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#co-issue"><span class="nav-number">5.3.2.</span> <span class="nav-text">co-issue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#if-else-%E8%AF%AD%E5%8F%A5"><span class="nav-number">5.3.3.</span> <span class="nav-text">if-else 语句</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Early-Z"><span class="nav-number">5.3.4.</span> <span class="nav-text">Early-Z</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%9F%E4%B8%80%E7%9D%80%E8%89%B2%E5%99%A8%E6%9E%B6%E6%9E%84%EF%BC%88Unified-shader-Architecture%EF%BC%89"><span class="nav-number">5.3.5.</span> <span class="nav-text">统一着色器架构（Unified shader Architecture）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%83%8F%E7%B4%A0%E5%9D%97%EF%BC%88Pixel-Quad%EF%BC%89"><span class="nav-number">5.3.6.</span> <span class="nav-text">像素块（Pixel Quad）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPU-%E8%B5%84%E6%BA%90%E6%9C%BA%E5%88%B6"><span class="nav-number">6.</span> <span class="nav-text">GPU 资源机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%9E%B6%E6%9E%84"><span class="nav-number">6.1.</span> <span class="nav-text">内存架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-Context-%E5%92%8C%E5%BB%B6%E8%BF%9F"><span class="nav-number">6.2.</span> <span class="nav-text">GPU Context 和延迟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-GPU-%E5%BC%82%E6%9E%84%E7%B3%BB%E7%BB%9F"><span class="nav-number">6.3.</span> <span class="nav-text">CPU-GPU 异构系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU-%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="nav-number">6.4.</span> <span class="nav-text">GPU 资源管理模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-GPU-%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-number">6.5.</span> <span class="nav-text">CPU-GPU 数据流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E5%83%8F%E6%9C%BA%E5%88%B6"><span class="nav-number">6.6.</span> <span class="nav-text">显像机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shader-%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6"><span class="nav-number">7.</span> <span class="nav-text">Shader 运行机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E6%89%A9%E5%B1%95%E4%BE%8B%E8%AF%81"><span class="nav-number">8.</span> <span class="nav-text">利用扩展例证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-vs-GPU"><span class="nav-number">9.1.</span> <span class="nav-text">CPU vs GPU</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">10.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luo Lie"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Luo Lie</p>
+  <div class="site-description" itemprop="description">这是一个罗列发呆的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppg11" title="PPG11 → https:&#x2F;&#x2F;github.com&#x2F;ppg11" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luolie0577@gmail.com" title="E-Mail → luolie0577@gmail.com"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/6618849018" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;6618849018" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luo Lie</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
